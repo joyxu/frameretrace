@@ -378,6 +378,7 @@ class OnFrameRetrace {
                          RenderId renderId,
                          TextureKey binding,
                          const std::vector<TextureData> &images) = 0;
+  virtual ~OnFrameRetrace() {}
 };
 
 // Serializable asynchronous retrace requests.

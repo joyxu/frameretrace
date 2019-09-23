@@ -111,6 +111,11 @@ FrameState *frame_state_off_thread(std::string filename,
 
 static QFuture<FrameState *> future;
 
+bool file_exists(const char *fileName) {
+  std::ifstream infile(fileName);
+  return infile.good();
+}
+
 void
 exec_retracer(const char *main_exe, int port) {
   // frameretrace_server should be at the same path as frameretrace
@@ -135,6 +140,13 @@ exec_retracer(const char *main_exe, int port) {
     server_exe = std::string("");
 
   server_exe += server_exe_name;
+
+  if (! file_exists(server_exe.c_str())) {
+    // not running from installation: server and ui executables are
+    // not in the same directory
+    server_exe = FRAMERETRACE_BUILD_DIR;
+    server_exe += sep + server_exe_name;
+  }
 
   std::stringstream port_ss;
   port_ss << port;

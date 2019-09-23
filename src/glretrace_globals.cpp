@@ -51,7 +51,7 @@ trace::Profiler profiler;
 
 
 int verbosity = 0;
-unsigned debug = 1;
+int debug = 1;
 bool dumpingState = false;
 bool dumpingSnapshots = false;
 
