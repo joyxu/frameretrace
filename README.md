@@ -35,3 +35,11 @@ This repo was generated from the following git commands:
 1. externals support to pull apitrace fork through meson
 1. Implement/verify/minimize build support
 
+## Build
+
+```
+ $ meson subprojects download
+ $ meson setup build
+ $ ninja -C build apitrace
+ $ ninja -C build
+```
