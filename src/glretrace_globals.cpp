@@ -52,6 +52,10 @@ trace::Profiler profiler;
 
 int verbosity = 0;
 int debug = 1;
+bool ignoreRetvals;
+bool resolveMSAA = true;
+bool contextCheck = true;
+
 bool dumpingState = false;
 bool dumpingSnapshots = false;
 
