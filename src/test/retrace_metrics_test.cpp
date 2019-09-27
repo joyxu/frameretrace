@@ -138,7 +138,7 @@ TEST_F(RetraceTest, SingleMetricData) {
     return;
   bool found = false;
 
-  for (int i = 0; i < cb.ids.size(); ++i) {
+  for (size_t i = 0; i < cb.ids.size(); ++i) {
     if (cb.names[i] == "GPU Time Elapsed") {
       found = true;
       p->selectMetric(cb.ids[i]);
@@ -186,7 +186,7 @@ TEST_F(RetraceTest, FrameMetricData) {
   }
   MetricId id;
   bool found = false;
-  for (int i = 0; i < cb.ids.size(); ++i) {
+  for (size_t i = 0; i < cb.ids.size(); ++i) {
     if (cb.names[i] == "GPU Time Elapsed") {
       found = true;
       id = cb.ids[i];
