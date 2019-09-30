@@ -23,4 +23,10 @@ framestat_exe = executable('framestat',
                              'glframe_loop.cpp',
                              'main.cpp',
                            ],
-                           dependencies : frameretrace_dep)
+                           dependencies : [
+                             dep_apitrace,
+                             frameretrace_dep,
+                             dep_apitrace,
+                             libx11,
+                           ]
+                          )

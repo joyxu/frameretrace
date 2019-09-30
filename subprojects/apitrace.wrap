@@ -1,5 +1,5 @@
 [wrap-git]
 directory = apitrace
 url = https://gitlab.freedesktop.org/majanes/apitrace.git
-revision = frameretrace
+revision = master
 

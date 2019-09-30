@@ -35,6 +35,22 @@ This repo was generated from the following git commands:
 1. externals support to pull apitrace fork through meson
 1. Implement/verify/minimize build support
 
+## Meson for apitrace
+
+apitrace subprojects needed to be linked up to subprojects/
+
+Because of cmake bugs, this did not work:
+
+```
+ $ meson wrap promote subprojects/apitrace/thirdparty/brotli
+```
+
+Plans for native meson support:
+
+1. fix remaining issues in dbaker's apitrace branch
+1. disable all aspects of apitrace that are not needed
+1. change from apitrace 3rdparty files to meson wrap wherever possible
+
 ## Build
 
 ```

@@ -32,6 +32,7 @@ bargraphtest_moc = qt5.preprocess(moc_headers : ['test_bargraph_ctx.hpp',
 
 exe = executable('bargraph_test', [src, bargraphtest_moc],
                  dependencies : [dispatch_dep,
+                                 libx11,
                                  libwaffle,
                                  bargraph_dep,
                                  gtest_dep,

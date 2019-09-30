@@ -33,6 +33,9 @@ frameretrace_test_exe = executable('frameretrace_test',
                                      libwaffle,
                                      bargraphtest_dep,
                                      gtest_dep,
+                                     dep_apitrace,
+                                     dep_md5,
+                                     libx11,
                                    ],
                                    cpp_args : '-DCMAKE_CURRENT_SOURCE_DIR="' + meson.current_source_dir() + '"'
                                   )

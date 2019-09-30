@@ -1,0 +1,5 @@
+[wrap-git]
+directory = waffle
+url = https://gitlab.freedesktop.org/mesa/waffle.git
+revision = master
+

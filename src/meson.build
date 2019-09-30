@@ -18,8 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-frameretrace_inc = [include_directories('.', 'context', 'gldispatch', 'amd_gpa'),
-                    apitrace_inc]
+frameretrace_inc = [include_directories('.', 'context', 'gldispatch', 'amd_gpa')]
 
 subdir('context')
 
@@ -94,24 +93,23 @@ frameretrace_lib = static_library('frameretrace',
                                    # 'glframe_win_shaders.cpp',
                                    'glretrace_globals.cpp',
                                    proto_generated],
-                                  include_directories : [frameretrace_inc, apitrace_inc],
+                                  include_directories : [frameretrace_inc],
                                   dependencies : [
                                     dispatch_dep,
                                     libdl,
-                                    libimage,
-                                    libmd5,
+                                    dep_md5,
                                     libpng,
                                     context_dep,
                                     proto_dep,
                                     thread_dep,
-                                    apitrace_dep,
+                                    dep_apitrace,
                                     amdgpa_dep,
+                                    dep_apitrace,
+                                    dep_khr,
                                   ])
 
-message('apitrace inc @0@'.format(apitrace_inc))
-
 frameretrace_dep = declare_dependency(link_with : frameretrace_lib,
-                                      include_directories : [frameretrace_inc, apitrace_inc])
+                                      include_directories : [frameretrace_inc])
 
 subdir('bargraph')
 subdir('server')

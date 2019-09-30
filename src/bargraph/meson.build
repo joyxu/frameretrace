@@ -30,7 +30,8 @@ bargraph_lib = static_library('bargraph', ['glframe_bargraph.cpp',
                                            'glframe_qselection.cpp',
                                            bargraph_moc],
                               dependencies : [qt5_dep,
-                                              frameretrace_dep],
+                                              frameretrace_dep,
+                                              dep_apitrace],
                              include_directories : rendering_inc)
 
 bargraph_dep = declare_dependency(link_with : bargraph_lib,
