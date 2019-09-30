@@ -364,7 +364,7 @@ RetraceContext::retraceRenderTarget(ExperimentId experimentCount,
 
         normalize_image(i, rt_num);
         std::stringstream png;
-        i->writePNG(png);
+        i->writePNG(png, true);
 
         std::vector<unsigned char> d;
         const int bytes = png.str().size();
