@@ -45,17 +45,14 @@ Because of cmake bugs, this did not work:
  $ meson wrap promote subprojects/apitrace/thirdparty/brotli
 ```
 
-Plans for native meson support:
-
-1. fix remaining issues in dbaker's apitrace branch
-1. disable all aspects of apitrace that are not needed
-1. change from apitrace 3rdparty files to meson wrap wherever possible
+Dylan Baker helped me add minimal meson build support for Apitrace,
+allowing FrameRetrace to use it as a native meson subproject.  Most of
+the 3rdparty dependencies of Apitrace could be build with meson's
+cmake support.
 
 ## Build
 
 ```
- $ meson subprojects download
  $ meson setup build
- $ ninja -C build apitrace
  $ ninja -C build
 ```
