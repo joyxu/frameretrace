@@ -241,12 +241,12 @@ BarGraphRenderer::selectMouseArea(bool shift) {
   std::vector<int> selected_renders;
   if (shift) {
     // preserve previous selection for shift-click
-    for (int i = 0; i < selected.size(); ++i) {
+    for (size_t i = 0; i < selected.size(); ++i) {
       if (selected[i])
         selected_renders.push_back(i);
     }
   } else {
-    for (int i = 0; i < selected.size(); ++i) {
+    for (size_t i = 0; i < selected.size(); ++i) {
       selected[i] = false;
     }
   }
@@ -358,14 +358,15 @@ BarGraphRenderer::render() {
   // these indices encircle the first bar.
   std::vector<uint16_t> outline_indices = { 0, 1, 3, 2, 0 };
 
-  for (GLint i = 0; i < vertices.size(); i += 4) {
+  for (size_t i = 0; i < vertices.size(); i += 4) {
     // draw the bars
+    const GLint index = i;
     const float bar_color[4] = { 0.0, 0.0, 1.0, 1.0 };
     const float selected_color[4] = { 1.0, 1.0, 0.0, 1.0 };
     const float* color = selected[i/4] ? selected_color : bar_color;
     glUniform4f(uni_bar_color, color[0], color[1], color[2], color[3]);
     GL_CHECK();
-    glDrawArrays(GL_TRIANGLE_STRIP, i, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, index, 4);
     GL_CHECK();
 
     // draw a thin border around each bar
@@ -413,7 +414,7 @@ BarGraphRenderer::render() {
 
 void
 BarGraphRenderer::setSelection(const std::set<int> &selection) {
-  for (int i = 0; i < selected.size(); ++i)
+  for (size_t i = 0; i < selected.size(); ++i)
     selected[i] = selection.find(i) != selection.end();
 }
 
@@ -429,7 +430,7 @@ void
 BarGraphRenderer::moveSelection(int amount, bool extend) {
   // right/left movement by 1
   assert(amount == 1 || amount == -1);
-  int first_selected = 0;
+  size_t first_selected = 0;
   // int direction = 1;
   if (amount > 0) {
     first_selected = selected.size() - 1;
@@ -446,7 +447,7 @@ BarGraphRenderer::moveSelection(int amount, bool extend) {
     // no selection, cannot move
     return;
 
-  const int target = first_selected + amount;
+  const size_t target = first_selected + amount;
   if (target < 0 || target >= selected.size())
     // do not shift off the graph
     return;
@@ -463,7 +464,7 @@ BarGraphRenderer::moveSelection(int amount, bool extend) {
     return;
 
   std::vector<int> selected_renders;
-  for (int i = 0; i < selected.size(); ++i) {
+  for (size_t i = 0; i < selected.size(); ++i) {
     if (selected[i])
       selected_renders.push_back(i);
   }

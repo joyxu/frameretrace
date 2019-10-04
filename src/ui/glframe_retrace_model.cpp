@@ -391,8 +391,8 @@ FrameRetraceModel::onMetrics(const MetricSeries &metricData,
     vertical_metric = true;
   if (vertical_metric)
     m_max_metric = 0.0;
-  assert(m_metrics.size() <= metricData.data.size());
-  while (m_metrics.size() < metricData.data.size())
+  assert((size_t)(m_metrics.size()) <= metricData.data.size());
+  while ((size_t)(m_metrics.size()) < metricData.data.size())
     m_metrics.append(BarMetrics());
   auto bar = m_metrics.begin();
   for (auto i : metricData.data) {
@@ -413,7 +413,7 @@ FrameRetraceModel::onUpdateMetricList() {
   m_metrics_model.clear();
   m_metrics_model.push_back(new QMetric(MetricId(0), "No metric"));
   assert(t_ids.size() == t_names.size());
-  for (int i = 0; i < t_ids.size(); ++i)
+  for (size_t i = 0; i < t_ids.size(); ++i)
     m_metrics_model.append(new QMetric(t_ids[i], t_names[i]));
   filterMetrics("");
   emit onQMetricList();
@@ -421,7 +421,7 @@ FrameRetraceModel::onUpdateMetricList() {
 
 void
 FrameRetraceModel::setMetric(int index, int id) {
-  if (index >= m_active_metrics.size())
+  if ((size_t)(index) >= m_active_metrics.size())
     m_active_metrics.resize(index+1);
 
   if (m_active_metrics[index] == MetricId(id))

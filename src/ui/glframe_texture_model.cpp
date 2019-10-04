@@ -142,7 +142,7 @@ QTextureModel::selectRender(int index) {
   {
     ScopedLock s(m_protect);
     m_index = index;
-    if (m_render_index.size() <= index) {
+    if (m_render_index.size() <= (size_t)(index)) {
       m_bindings = QStringList();
     } else {
       RenderId r = m_render_index[index];
@@ -173,7 +173,7 @@ QTextureModel::selectBinding(QString b) {
     ScopedLock s(m_protect);
     m_currentTexture = &m_defaultTexture;
 
-    if (m_index >= m_render_index.size())
+    if ((size_t)(m_index) >= m_render_index.size())
       return;
 
     const auto render = m_render_index[m_index];

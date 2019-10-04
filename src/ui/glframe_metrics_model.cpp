@@ -94,7 +94,7 @@ QMetricsModel::init(IFrameRetrace *r,
                     int render_count) {
   m_retrace = r;
   m_render_count = render_count;
-  for (int i = 0; i < ids.size(); ++i) {
+  for (size_t i = 0; i < ids.size(); ++i) {
     QMetricValue *q = new QMetricValue(this);
     q->setName(names[i]);
     q->setDescription(desc[i]);

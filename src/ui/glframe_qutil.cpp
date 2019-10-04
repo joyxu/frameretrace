@@ -49,7 +49,7 @@ glretrace::renderSelectionFromList(SelectionId id,
       series.push_back(RenderSequence(begin, end));
       break;
     }
-    if (*i == end.index()) {
+    if ((uint32_t)(*i) == end.index()) {
       // part of a contiguous sequence
       ++end;
       continue;

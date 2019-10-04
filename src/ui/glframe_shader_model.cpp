@@ -83,8 +83,8 @@ QRenderShadersList::onShaderAssembly(RenderId renderId,
     m_render_strings.clear();
     m_current_selection = selectionCount;
   }
-  assert(m_render_strings.size() == m_shader_assemblies.size());
-  for (int i = 0; i < m_shader_assemblies.size(); ++i) {
+  assert((size_t)m_render_strings.size() == m_shader_assemblies.size());
+  for (size_t i = 0; i < m_shader_assemblies.size(); ++i) {
     if ((vertex.shader == m_shader_assemblies[i][0].shader) &&
         (fragment.shader == m_shader_assemblies[i][1].shader) &&
         (tess_control.shader == m_shader_assemblies[i][2].shader) &&

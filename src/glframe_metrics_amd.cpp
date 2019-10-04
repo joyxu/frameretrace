@@ -346,7 +346,7 @@ PerfMetricGroup::publish(MetricId metric,
       const GLuint *group = reinterpret_cast<const GLuint *>(buf_ptr);
       const GLuint *counter = group + 1;
       buf_ptr += 2*sizeof(GLuint);
-      assert(*group == m_group_id);
+      assert((int)(*group) == m_group_id);
       if (metric != ALL_METRICS_IN_GROUP)
         assert(metric.counter() == *counter);
       MetricId parsed_metric(*group, *counter);
