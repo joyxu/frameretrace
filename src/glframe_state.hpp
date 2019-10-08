@@ -155,7 +155,7 @@ class StateTrack {
   void trackUseProgramStages(const trace::Call &);
 
   OutputPoller *m_poller;
-  int current_program, current_pipeline;
+  int current_program, current_pipeline, last_linked_program;
   std::map<int, std::string> shader_to_source;
   std::map<int, int> shader_to_type;
   std::map<std::string, int> source_to_shader;

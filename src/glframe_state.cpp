@@ -63,6 +63,7 @@ StateTrack::StateTrack(OutputPoller *p)
     : m_poller(p),
       current_program(0),
       current_pipeline(0),
+      last_linked_program(0),
       empty_shader() {
 }
 
@@ -207,7 +208,7 @@ StateTrack::trackLinkProgram(const trace::Call &call) {
   // with the current program.  In fact, the active program is still
   // 0.  This may affect SSO programs which never call glUseProgram
   // (FrameRetrace will think the program is in use)
-  current_program = getRetracedProgram(call.args[0].value->toDouble());
+  last_linked_program = getRetracedProgram(call.args[0].value->toDouble());
 }
 
 void
@@ -221,6 +222,10 @@ StateTrack::trackUseProgram(const trace::Call &call) {
     current_program = 0;
   else
     current_program = getRetracedProgram(call_program);
+
+  // since the program is set, we no longer need to keep track of the
+  // last linked program.
+  last_linked_program = 0;
 }
 
 void
@@ -848,7 +853,7 @@ StateTrack::trackBindProgramPipeline(const trace::Call &call) {
 void
 StateTrack::trackUseProgramStages(const trace::Call &call) {
   const int call_pipeline = call.args[0].value->toDouble();
-  const int pipeline = getRetracedPipeline(call_pipeline);
+ const int pipeline = getRetracedPipeline(call_pipeline);
   const unsigned int stages = call.args[1].value->toDouble();
   const int call_program = call.args[2].value->toDouble();
   const int program = getRetracedProgram(call_program);
