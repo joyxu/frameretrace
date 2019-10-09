@@ -179,6 +179,13 @@ FrameRetrace::openFile(const std::string &filename,
   retracer.addCallbacks(glretrace::cgl_callbacks);
   retracer.addCallbacks(glretrace::egl_callbacks);
 
+  m_retracer = new RetraceFilter(&retracer);
+  // disable calls that are likely to have been initiated in previous
+  // frames. Query results can have zero influence on trace playback.
+  m_retracer->Disable("glGenQueries");
+  m_retracer->Disable("glGetQueryObjectui64v");
+  m_retracer->Disable("glQueryCounter");
+
   retrace::setUp();
   parser->open(filename.c_str());
 
@@ -197,7 +204,7 @@ FrameRetrace::openFile(const std::string &filename,
     // source program has deleted them.  To support this, we never
     // delete shaders.
     if (strcmp(call->sig->name, "glDeleteShader") != 0) {
-      retracer.retrace(*call);
+      m_retracer->retrace(*call);
       m_tracker.track(*call);
     }
     const bool frame_boundary = RetraceRender::endsFrame(*call);
@@ -219,6 +226,16 @@ FrameRetrace::openFile(const std::string &filename,
     return;
   }
 
+  // TODO: Sync objects have the potential to affect rendering, but
+  // allowing them will likely repeat glClientWaitSync thousands of
+  // times on a sync object that was deleted within the frame.  If a
+  // trace is found where this affects rendering, then individual
+  // object deletions must be tracked, so targeted syncs can be
+  // filtered.
+  m_retracer->Disable("glClientWaitSync");
+  m_retracer->Disable("glDeleteSync");
+  m_retracer->Disable("glFenceSync");
+
   // sends list of available metrics to ui
   m_metrics = PerfMetrics::Create(callback);
   parser->getBookmark(frame_start.start);
@@ -231,7 +248,7 @@ FrameRetrace::openFile(const std::string &filename,
 
   while (true) {
     auto c = new RetraceContext(current_render, tex2x2, parser,
-                                &retracer, &m_tracker, m_cancelPolicy);
+                                m_retracer, &m_tracker, m_cancelPolicy);
     // initialize metrics collector with context
     m_metrics->beginContext();
     m_metrics->endContext();

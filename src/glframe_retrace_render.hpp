@@ -54,7 +54,7 @@ class TextureOverride;
 class RetraceRender {
  public:
   RetraceRender(unsigned int tex2x2, trace::AbstractParser *parser,
-                retrace::Retracer *retracer,
+                RetraceFilter *retracer,
                 StateTrack *tracker);
   ~RetraceRender();
 
@@ -101,7 +101,7 @@ class RetraceRender {
   void overrideUniforms() const;
 
   trace::AbstractParser *m_parser;
-  retrace::Retracer *m_retracer;
+  RetraceFilter *m_retracer;
   RenderBookmark m_bookmark;
   std::string m_original_vs, m_original_fs,
     m_original_tess_control, m_original_tess_eval,

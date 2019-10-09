@@ -90,6 +90,7 @@ enum AssemblyType {
 };
 
 // tracks subset of gl state for frameretrace purposes
+class RetraceFilter;
 class StateTrack {
  public:
   explicit StateTrack(OutputPoller *p);
@@ -111,7 +112,7 @@ class StateTrack {
                  std::string *message = NULL);
   void useProgram(int program);
   void retraceProgramSideEffects(int orig_program, trace::Call *c,
-                                 retrace::Retracer *retracer) const;
+                                 RetraceFilter *retracer) const;
   static void useProgramGL(int program);
 
  private:

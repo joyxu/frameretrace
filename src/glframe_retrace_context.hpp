@@ -64,7 +64,7 @@ class RetraceContext {
   RetraceContext(RenderId current_render,
                  unsigned int tex2x2,
                  trace::AbstractParser *parser,
-                 retrace::Retracer *retracer,
+                 RetraceFilter *retracer,
                  StateTrack *tracker,
                  const CancellationPolicy &cancel);
   void retraceRenderTarget(ExperimentId experimentCount,
@@ -131,7 +131,7 @@ class RetraceContext {
 
  private:
   trace::AbstractParser *m_parser;
-  retrace::Retracer *m_retracer;
+  RetraceFilter *m_retracer;
   trace::ParseBookmark m_start_bookmark, m_end_bookmark;
   trace::Call *m_context_switch;
   RenderBookmark m_context_start;

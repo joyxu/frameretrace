@@ -38,6 +38,7 @@
 #include "GL/glext.h"
 #include "glframe_glhelper.hpp"
 #include "glframe_logger.hpp"
+#include "glframe_retrace.hpp"
 #include "glframe_retrace_interface.hpp"
 #include "glframe_uniforms.hpp"
 #include "glretrace.hpp"
@@ -696,7 +697,7 @@ StateTrack::useProgramGL(int program) {
 
 void
 StateTrack::retraceProgramSideEffects(int orig_program, trace::Call *c,
-                                      retrace::Retracer *retracer) const {
+                                      RetraceFilter *retracer) const {
   if (strncmp("glProgramUniform", c->sig->name,
               strlen("glProgramUniform")) == 0) {
     const int program = c->arg(0).toUInt();

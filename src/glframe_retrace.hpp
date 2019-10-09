@@ -32,13 +32,14 @@
 #include <string>
 #include <vector>
 
-#include "image.hpp"
-#include "trace_parser.hpp"
-#include "retrace.hpp"
+#include "glframe_cancellation.hpp"
+#include "glframe_filter.hpp"
 #include "glframe_retrace_interface.hpp"
 #include "glframe_state.hpp"
 #include "glframe_thread_context.hpp"
-#include "glframe_cancellation.hpp"
+#include "image.hpp"
+#include "retrace.hpp"
+#include "trace_parser.hpp"
 
 namespace glretrace {
 
@@ -57,6 +58,7 @@ struct RenderBookmark {
 class PerfMetrics;
 class RetraceRender;
 class RetraceContext;
+
 class FrameRetrace : public IFrameRetrace {
  public:
   FrameRetrace();
@@ -144,6 +146,7 @@ class FrameRetrace : public IFrameRetrace {
   std::vector<RetraceContext*> m_contexts;
   StateTrack m_tracker;
   PerfMetrics * m_metrics;
+  RetraceFilter * m_retracer;
 
   // each entry is the last render in an RT region
   std::vector<RenderId> render_target_regions;

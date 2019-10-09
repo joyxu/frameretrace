@@ -70,7 +70,7 @@ static int geometry_render_supported = -1;
 RetraceContext::RetraceContext(RenderId current_render,
                                unsigned int tex2x2,
                                trace::AbstractParser *parser,
-                               retrace::Retracer *retracer,
+                               RetraceFilter* retracer,
                                StateTrack *tracker,
                                const CancellationPolicy &cancel)
     : m_parser(parser), m_retracer(retracer),

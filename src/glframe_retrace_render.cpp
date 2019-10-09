@@ -164,7 +164,7 @@ class RetraceRender::UniformOverride {
 
 RetraceRender::RetraceRender(unsigned int tex2x2,
                              trace::AbstractParser *parser,
-                             retrace::Retracer *retracer,
+                             RetraceFilter *retracer,
                              StateTrack *tracker)
     : m_parser(parser),
       m_retracer(retracer),
