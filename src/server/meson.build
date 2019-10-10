@@ -20,6 +20,15 @@
 
 server_dir = meson.current_build_dir()
 
+
+win_deps = []
+if host_machine.system() == 'windows'
+  cpp = meson.get_compiler('cpp')
+  win_deps += [cpp.find_library('ws2_32'), # winsock
+	       cpp.find_library('Opengl32'), #opengl
+	       ]
+endif
+
 frameretrace_server_exe = executable(
   'frameretrace_server',
   'main.cpp',
@@ -28,6 +37,9 @@ frameretrace_server_exe = executable(
     frameretrace_dep,
     dep_apitrace,
     libx11,
+    dep_khr,
+    idep_getopt,
+    win_deps,
   ],
   install : true
 )

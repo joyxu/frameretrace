@@ -71,7 +71,6 @@ using glretrace::StateKey;
 using glretrace::StateTrack;
 using glretrace::StdErrRedirect;
 using glretrace::WARN;
-using glretrace::WinBatch;
 using image::Image;
 using retrace::parser;
 using trace::Call;
@@ -80,6 +79,7 @@ using glretrace::WinShaders;
 extern retrace::Retracer retracer;
 
 #ifdef WIN32
+using glretrace::WinBatch;
 static WinShaders assemblyOutput;
 static WinBatch batchControl;
 #else

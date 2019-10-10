@@ -5,3 +5,6 @@ libpng-1.6.37
 protobuf-3.5.1
 waffle
 zlib-1.2.11
+getopt
+mhook
+protobuf

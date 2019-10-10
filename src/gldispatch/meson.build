@@ -18,7 +18,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-dispatch_inc = include_directories('.')
-dispatch_lib = static_library('dispatch', 'glframe_glhelper.cpp')
+dispatch_inc = include_directories('.', '../../subprojects/khronos')
+if host_machine.system() == 'windows'
+  win_dep = dep_apitrace
+else
+  win_dep = dependency('', required : false)
+endif
+
+dispatch_lib = static_library('dispatch', 'glframe_glhelper.cpp', dependencies : [dep_khr, win_dep])
 
 dispatch_dep = declare_dependency(link_with : dispatch_lib, include_directories : dispatch_inc)

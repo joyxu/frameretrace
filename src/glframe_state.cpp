@@ -45,16 +45,17 @@
 #include "retrace.hpp"
 #include "trace_model.hpp"
 
-using glretrace::StateTrack;
-using glretrace::WARN;
-using glretrace::OutputPoller;
+using glretrace::AssemblyType;
 using glretrace::OnFrameRetrace;
+using glretrace::OutputPoller;
+using glretrace::RetraceFilter;
 using glretrace::ShaderAssembly;
 using glretrace::ShaderType;
-using glretrace::AssemblyType;
+using glretrace::StateTrack;
 using glretrace::Uniforms;
-using trace::Call;
+using glretrace::WARN;
 using trace::Array;
+using trace::Call;
 
 static std::map<std::string, bool> ignore_strings;
 

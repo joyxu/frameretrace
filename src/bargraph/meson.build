@@ -35,6 +35,11 @@ bargraph_lib = static_library('bargraph', ['glframe_bargraph.cpp',
                              include_directories : rendering_inc)
 
 bargraph_dep = declare_dependency(link_with : bargraph_lib,
-                                  include_directories : bargraph_inc)
-subdir('test')
+	     include_directories : bargraph_inc)
+
+if libwaffle.found()
+  subdir('test')
+else
+  bargraphtest_dep = dependency('', required : false)
+endif
 subdir('ui')

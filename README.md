@@ -56,3 +56,33 @@ cmake support.
  $ meson setup build
  $ ninja -C build
 ```
+
+### Windows
+#### System Setup
+From a shell with administrator access:
+```
+ > choco install pkgconfiglite
+ > choco install getopt
+```
+#### Compilation
+Meson wraps have not been published for some of the Apitrace 3rd party libraries.  For Linux, the libraries are symlinked into frameretrace/subprojects.  For Windows, we must delete the symlinks and copy the source files frameretrace/subprojects/apitrace/thirdparty.
+
+From a Visual Studio Native Tools Command Prompt
+```
+ > meson subprojects download 
+ > del subprojects\snappy
+ > xcopy  subprojects\apitrace\thirdparty\snappy subprojects\snappy /s /e /h /I
+ > del subprojects\md5
+ > xcopy  subprojects\apitrace\thirdparty\md5 subprojects\md5 /s /e /h /I
+ > del subprojects\brotli
+ > xcopy  subprojects\apitrace\thirdparty\brotli subprojects\brotli /s /e /h /I
+ > del subprojects\khronos
+ > xcopy  subprojects\apitrace\thirdparty\khronos subprojects\khronos /s /e /h /I
+ > del subprojects\crc32c
+ > xcopy  subprojects\apitrace\thirdparty\crc32c subprojects\crc32c /s /e /h /I
+ > xcopy  subprojects\apitrace\thirdparty\mhook subprojects\mhook /s /e /h /I
+ > xcopy  subprojects\apitrace\thirdparty\getopt subprojects\getopt /s /e /h /I
+ > meson setup build
+ > cd build
+ > ninja
+```

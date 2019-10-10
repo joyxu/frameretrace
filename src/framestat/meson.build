@@ -18,6 +18,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+win_deps = []
+if host_machine.system() == 'windows'
+  win_deps += [cpp.find_library('Opengl32'), #opengl
+	       ]
+endif
 framestat_exe = executable('framestat',
                            [
                              'glframe_loop.cpp',
@@ -28,5 +33,8 @@ framestat_exe = executable('framestat',
                              frameretrace_dep,
                              dep_apitrace,
                              libx11,
+			     dep_khr,
+			     idep_getopt,
+			     win_deps,
                            ]
                           )

@@ -29,6 +29,7 @@
 
 #include <assert.h>
 #ifdef WIN32
+#include <windows.h>
 #include "retrace.hpp"
 #include "glretrace.hpp"
 #include "glws.hpp"

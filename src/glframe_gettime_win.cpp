@@ -26,9 +26,8 @@
  * SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
 
-#include "c.h"
-
-#include <sys/time.h>
+#include <time.h>
+#include <windows.h>
 
 
 /* FILETIME of Jan 1 1970 00:00:00. */

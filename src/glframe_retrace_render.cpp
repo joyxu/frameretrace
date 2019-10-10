@@ -48,6 +48,7 @@ using glretrace::DEBUG;
 using glretrace::ExperimentId;
 using glretrace::GlFunctions;
 using glretrace::PerfMetrics;
+using glretrace::RetraceFilter;
 using glretrace::RetraceRender;
 using glretrace::SelectionId;
 using glretrace::StateKey;

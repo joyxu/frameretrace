@@ -38,14 +38,27 @@ thread_dep = dependency('threads')
 subdir('gldispatch')
 subdir('amd_gpa')
 
+if host_machine.system() == 'windows'
+  os_sources = ['glframe_os_win.cpp',
+                'glframe_thread_win.cpp',
+                'glframe_win_shaders.cpp',
+	       ]
+else
+  os_sources = ['glframe_gpu_speed_linux.cpp',
+                 'glframe_os_linux.cpp',
+                 'glframe_perf_enabled_linux.cpp',
+                 'glframe_thread_linux.cpp',
+		 'glframe_stderr.cpp',
+		 'glframe_batch.cpp',
+		]
+endif
+
 frameretrace_lib = static_library('frameretrace',
-                                  ['glframe_batch.cpp',
+                                  [os_sources,
                                    'glframe_batch.hpp',
                                    'glframe_cancellation.cpp',
                                    'glframe_cancellation.hpp',
-                                   # 'glframe_gettime_win.cpp',
                                    'glframe_gpu_speed.hpp',
-                                   'glframe_gpu_speed_linux.cpp',
                                    'glframe_logger.cpp',
                                    'glframe_logger.hpp',
                                    'glframe_metrics_amd.cpp',
@@ -55,10 +68,7 @@ frameretrace_lib = static_library('frameretrace',
                                    'glframe_metrics_intel.cpp',
                                    'glframe_metrics_intel.hpp',
                                    'glframe_os.hpp',
-                                   'glframe_os_linux.cpp',
-                                   # 'glframe_os_win.cpp',
                                    'glframe_perf_enabled.hpp',
-                                   'glframe_perf_enabled_linux.cpp',
                                    'glframe_retrace_context.cpp',
                                    'glframe_retrace_context.hpp',
                                    'glframe_retrace.cpp',
@@ -80,17 +90,13 @@ frameretrace_lib = static_library('frameretrace',
                                    'glframe_state.hpp',
                                    'glframe_state_override.cpp',
                                    'glframe_state_override.hpp',
-                                   'glframe_stderr.cpp',
                                    'glframe_stderr.hpp',
                                    'glframe_texture_override.cpp',
                                    'glframe_texture_override.hpp',
                                    'glframe_thread.hpp',
-                                   'glframe_thread_linux.cpp',
-                                   # 'glframe_thread_win.cpp',
                                    'glframe_traits.hpp',
                                    'glframe_uniforms.cpp',
                                    'glframe_uniforms.hpp',
-                                   # 'glframe_win_shaders.cpp',
                                    'glretrace_globals.cpp',
                                    proto_generated],
                                   include_directories : [frameretrace_inc],
@@ -115,4 +121,6 @@ subdir('bargraph')
 subdir('server')
 subdir('ui')
 subdir('framestat')
-subdir('test')
+if libwaffle.found()
+  subdir('test')
+endif
