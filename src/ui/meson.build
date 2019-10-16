@@ -74,4 +74,5 @@ frameretrace_exe = executable('frameretrace',
                                 libx11,
                               ],
                               include_directories : rendering_inc,
-                              cpp_args : '-DFRAMERETRACE_BUILD_DIR="' + server_dir + '"')
+                              cpp_args : '-DFRAMERETRACE_BUILD_DIR="' + server_dir + '"',
+                             install : true)

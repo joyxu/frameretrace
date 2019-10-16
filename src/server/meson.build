@@ -28,5 +28,6 @@ frameretrace_server_exe = executable(
     frameretrace_dep,
     dep_apitrace,
     libx11,
-  ]
+  ],
+  install : true
 )

@@ -43,7 +43,6 @@ libpng = dependency('libpng', required : true, fallback :['libpng', 'png_dep'])
 libwaffle = dependency('waffle', required : true, fallback :['waffle', 'ext_waffle'])
 libx11 = cpp.find_library('X11', required : false)
 libz = dependency('zlib', required : true, fallback : ['zlib', 'zlib_dep'])
-libprocps = cpp.find_library('procps', required : false)
 
 proj_apitrace = subproject('apitrace')
 
