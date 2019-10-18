@@ -313,7 +313,11 @@ StdErrRedirect::~StdErrRedirect() {
 
 void
 StdErrRedirect::init() {
-  setenv("INTEL_DEBUG", "vs,fs,tcs,tes,gs,cs", 1);
+  std::string new_intel_debug = "vs,fs,tcs,tes,gs,cs";
+  char *prev_intel_debug = getenv("INTEL_DEBUG");
+  if (prev_intel_debug)
+    new_intel_debug.append(",").append(prev_intel_debug);
+  setenv("INTEL_DEBUG", new_intel_debug.c_str(), 1);
   setenv("FD_SHADER_DEBUG", "vs,fs,tcs,tes,gs,cs", 1);
   setenv("vblank_mode", "0", 1);
   setenv("MESA_GLSL_CACHE_DISABLE", "1", 1);
