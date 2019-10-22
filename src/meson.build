@@ -22,11 +22,8 @@ frameretrace_inc = [include_directories('.', 'context', 'gldispatch', 'amd_gpa')
 
 subdir('context')
 
-# TODO: extract qrenderselection from frameretrace_ui
 rendering_inc = include_directories('ui', 'bargraph')
 
-protoc = find_program('protoc', required : true)
-proto_dep = dependency('protobuf', required : true, fallback : ['protobuf', 'protobuf_dep'])
 proto_gen = generator(protoc, \
   output    : ['@BASENAME@.pb.cc', '@BASENAME@.pb.h'],
   arguments : ['--proto_path=@CURRENT_SOURCE_DIR@', '--cpp_out=@BUILD_DIR@', '@INPUT@'])
@@ -106,7 +103,7 @@ frameretrace_lib = static_library('frameretrace',
                                     dep_md5,
                                     libpng,
                                     context_dep,
-                                    proto_dep,
+                                    protobuf_dep,
                                     thread_dep,
                                     dep_apitrace,
                                     amdgpa_dep,

@@ -79,7 +79,10 @@ libpng = dependency('libpng', required : true, fallback :['libpng', 'png_dep'])
 libwaffle = dependency('waffle-1', required : false)
 libx11 = cpp.find_library('X11', required : false)
 libz = dependency('zlib', required : true, fallback : ['zlib', 'zlib_dep'])
-
+protobuf_dep = dependency('protobuf', required : true,
+			  version : '>3.9',
+			  fallback : ['protobuf', 'protobuf_dep'])
+protoc = subproject('protobuf').get_variable('protoc')
 
 proj_apitrace = subproject('apitrace')
 

@@ -40,6 +40,7 @@ frameretrace_server_exe = executable(
     dep_khr,
     idep_getopt,
     win_deps,
+    protobuf_dep,
   ],
   install : true
 )
