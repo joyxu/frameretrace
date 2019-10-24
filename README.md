@@ -59,13 +59,30 @@ cmake support.
 
 ### Windows
 #### System Setup
+##### Qt
+Install Qt, with either the mingw toolset or MSVC (or both), depending
+on your available tools.
+
+Add c:\Qt\{version}\{toolkit}\bin to your systems PATH, for each
+toolkit that you want to use.
+##### Chocolatey
 From a shell with administrator access:
 ```
- > choco install pkgconfiglite
- > choco install getopt
+ > choco install mingw python3 git ninja pkgconfiglite -y
+ 
+```
+##### Meson
+From a shell with administrator access:
+```
+ > py -m pip install meson
+ 
 ```
 #### Compilation
-Meson wraps have not been published for some of the Apitrace 3rd party libraries.  For Linux, the libraries are symlinked into frameretrace/subprojects.  For Windows, we must delete the symlinks and copy the source files frameretrace/subprojects/apitrace/thirdparty.
+Meson wraps have not been published for some of the Apitrace 3rd party
+libraries.  For Linux, the libraries are symlinked into
+frameretrace/subprojects.  For Windows, we must delete the symlinks
+and copy the source files
+frameretrace/subprojects/apitrace/thirdparty.
 
 From a Visual Studio Native Tools Command Prompt
 ```
