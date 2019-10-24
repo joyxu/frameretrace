@@ -59,15 +59,32 @@ cmake support.
 
 ### Windows
 #### System Setup
+##### Qt
+Install Qt, with either the mingw toolset or MSVC (or both), depending
+on your available tools.
+
+Add c:\Qt\{version}\{toolkit}\bin to your systems PATH, for each
+toolkit that you want to use.
+##### Chocolatey
 From a shell with administrator access:
 ```
- > choco install pkgconfiglite
- > choco install getopt
+ > choco install mingw python3 git ninja pkgconfiglite -y
+ 
+```
+##### Meson
+From a shell with administrator access:
+```
+ > py -m pip install meson
+ 
 ```
 #### Compilation
-Meson wraps have not been published for some of the Apitrace 3rd party libraries.  For Linux, the libraries are symlinked into frameretrace/subprojects.  For Windows, we must delete the symlinks and copy the source files frameretrace/subprojects/apitrace/thirdparty.
+Meson wraps have not been published for some of the Apitrace 3rd party
+libraries.  For Linux, the libraries are symlinked into
+frameretrace/subprojects.  For Windows, we must delete the symlinks
+and copy the source files
+frameretrace/subprojects/apitrace/thirdparty.
 
-From a Visual Studio Native Tools Command Prompt
+For mingw:
 ```
  > meson subprojects download 
  > del subprojects\snappy
@@ -86,3 +103,10 @@ From a Visual Studio Native Tools Command Prompt
  > cd build
  > ninja
 ```
+
+For Visual Studio, run the same commands in a Visual Studio Native
+Tools Command Prompt.  NOTE: Meson 0.52 has a bug which causes Visual
+Studio projects to add glproc.hpp paths where a directory path is
+needed.  If this hasn't already been fixed, you can edit the project
+files that fail to load and remove the glproc.hpp filename from each
+entry that should configure an include path.

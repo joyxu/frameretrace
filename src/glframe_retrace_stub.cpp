@@ -408,7 +408,7 @@ class RetraceOpenFileRequest: public IRetraceRequest {
     // calculate md5 sum off-thread.  It takes a long time and will block the UI
     {
       struct MD5Context md5c;
-      MD5Init(&md5c);
+      _MD5Init(&md5c);
       std::vector<unsigned char> buf(1024 * 1024);
       auto file_open = m_proto_msg.mutable_fileopen();
       FILE * fh = fopen(file_open->filename().c_str(), "r");
@@ -417,13 +417,13 @@ class RetraceOpenFileRequest: public IRetraceRequest {
       while (true) {
         const size_t bytes = fread(buf.data(), 1, 1024 * 1024, fh);
         total_bytes += bytes;
-        MD5Update(&md5c, buf.data(), bytes);
+        _MD5Update(&md5c, buf.data(), bytes);
         if (feof(fh))
           break;
         assert(!ferror(fh));
       }
       std::vector<unsigned char> md5(16);
-      MD5Final(md5.data(), &md5c);
+      _MD5Final(md5.data(), &md5c);
       file_open->set_md5sum(md5.data(), md5.size());
       file_open->set_filesize(total_bytes);
     }

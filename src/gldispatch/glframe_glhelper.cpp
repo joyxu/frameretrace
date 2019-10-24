@@ -199,9 +199,9 @@ static void * _GetProcAddress(const char *name) {
   void* ret = lookup_fn(name);
 #ifdef WIN32
   if (ret == NULL)
-    ret = GetProcAddress(lib_handle, name);
+    ret = (void*)GetProcAddress(lib_handle, name);
   if (ret == NULL)
-    ret = wglGetProcAddress(name);
+    ret = (void*)wglGetProcAddress(name);
 #endif
   return ret;
 }

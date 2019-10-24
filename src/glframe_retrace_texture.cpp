@@ -250,11 +250,11 @@ class TextureCollector : public StateWriter {
 
     // create a md5sum name for the image
     struct MD5Context md5c;
-    MD5Init(&md5c);
+    _MD5Init(&md5c);
     const unsigned char* ucb = reinterpret_cast<const unsigned char*>(bytes);
-    MD5Update(&md5c, const_cast<unsigned char*>(ucb), size);
+    _MD5Update(&md5c, const_cast<unsigned char*>(ucb), size);
     std::vector<unsigned char> md5(16);
-    MD5Final(md5.data(), &md5c);
+    _MD5Final(md5.data(), &md5c);
     std::vector<char> md5sum(md5.size() * 2 + 1);
     md5sum.back() = '\0';
     for (size_t i = 0; i < md5.size(); ++i)

@@ -159,7 +159,7 @@ void
 get_md5(const std::string filename, std::vector<unsigned char> *md5,
         uint32_t *fileSize) {
   struct MD5Context md5c;
-  MD5Init(&md5c);
+  _MD5Init(&md5c);
   std::vector<unsigned char> buf(1024 * 1024);
   FILE * fh = fopen(filename.c_str(), "r");
   assert(fh);
@@ -167,13 +167,13 @@ get_md5(const std::string filename, std::vector<unsigned char> *md5,
   while (true) {
     const size_t bytes = fread(buf.data(), 1, 1024 * 1024, fh);
     total_bytes += bytes;
-    MD5Update(&md5c, buf.data(), bytes);
+    _MD5Update(&md5c, buf.data(), bytes);
     if (feof(fh))
       break;
     assert(!ferror(fh));
   }
   md5->resize(16);
-  MD5Final(md5->data(), &md5c);
+  _MD5Final(md5->data(), &md5c);
   *fileSize = total_bytes;
 }
 
