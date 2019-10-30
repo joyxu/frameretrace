@@ -113,7 +113,7 @@ FrameLoop::advanceToFrame(int f) {
     }
   }
 }
-#ifdef _MSC_VER
+#ifdef WIN32
 #include "Windows.h"
 inline unsigned int
 get_ms_time() {
