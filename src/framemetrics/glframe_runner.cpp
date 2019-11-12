@@ -556,10 +556,10 @@ enum MetricsType {
 MetricsType get_metrics_type() {
   std::string extensions;
   GlFunctions::GetGlExtensions(&extensions);
-  if (extensions.find("GL_AMD_performance_monitor") != std::string::npos)
-    return AMD_METRICS;
   if (extensions.find("GL_INTEL_performance_query") != std::string::npos)
     return INTEL_METRICS;
+  if (extensions.find("GL_AMD_performance_monitor") != std::string::npos)
+    return AMD_METRICS;
   assert(false);
 }
 

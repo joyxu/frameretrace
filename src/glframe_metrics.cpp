@@ -46,10 +46,10 @@ PerfMetrics *PerfMetrics::Create(OnFrameRetrace *callback) {
       return new glretrace::PerfMetricsAMDGPA(callback);
 
   GlFunctions::GetGlExtensions(&extensions);
-  if (extensions.find("GL_AMD_performance_monitor") != std::string::npos)
-    return new PerfMetricsAMD(callback);
   if (extensions.find("GL_INTEL_performance_query") != std::string::npos)
     return new PerfMetricsIntel(callback);
+  if (extensions.find("GL_AMD_performance_monitor") != std::string::npos)
+    return new PerfMetricsAMD(callback);
 
   return new glretrace::DummyMetrics();
 }
