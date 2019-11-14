@@ -56,10 +56,12 @@ extern retrace::Retracer retracer;
 
 FrameRunner::FrameRunner(const std::string filepath,
                          const std::string out_path,
-                         std::string metrics_group)
+                         std::string metrics_group,
+                         MetricInterval interval)
     : m_of(), m_out(NULL),
       m_current_frame(1),
       m_group_id(-1),
+      m_interval(interval),
       m_metrics_group(metrics_group) {
   if (out_path.size()) {
     m_of.open(out_path);
@@ -99,9 +101,9 @@ class PerfValue {
   int number;
   std::string event_type;
   PerfValue(int _handle, int _frame,
-            int _number, std::string _event_type)
+            int _number)
       : handle(_handle), frame(_frame), number(_number),
-        event_type(_event_type) {}
+        event_type("") {}
 };
 
 IntelPerfMetric::IntelPerfMetric(int query_id,
@@ -173,9 +175,8 @@ class PerfMetricGroup {
   virtual ~PerfMetricGroup() {}
   virtual const std::string &name() const = 0;
   virtual void get_metric_names(std::vector<std::string> *out_names) = 0;
-  virtual void begin(int current_frame, int event_number,
-                     const std::string &event_type) = 0;
-  virtual void end() = 0;
+  virtual void begin(int current_frame, int event_number) = 0;
+  virtual void end(const std::string &event_type) = 0;
   virtual void publish(std::ostream *outf, bool wait) = 0;
 };
 
@@ -185,9 +186,8 @@ class IntelPerfMetricGroup : public PerfMetricGroup, NoCopy, NoAssign {
   ~IntelPerfMetricGroup();
   const std::string &name() const { return m_query_name; }
   void get_metric_names(std::vector<std::string> *out_names);
-  void begin(int current_frame, int event_number,
-             const std::string &event_type);
-  void end();
+  void begin(int current_frame, int event_number);
+  void end(const std::string &event_type);
   void publish(std::ostream *outf, bool wait);
 
  private:
@@ -234,8 +234,7 @@ IntelPerfMetricGroup::get_metric_names(std::vector<std::string> *out_names) {
 }
 
 void
-IntelPerfMetricGroup::begin(int current_frame, int event_number,
-                       const std::string &event_type) {
+IntelPerfMetricGroup::begin(int current_frame, int event_number) {
   if (m_free_query_handles.empty()) {
     for (int i = 0; i < 10000; ++i) {
       GLuint query_handle;
@@ -263,8 +262,7 @@ IntelPerfMetricGroup::begin(int current_frame, int event_number,
     GRLOG(glretrace::WARN, "failed to begin metrics query");
     assert(false);
   }
-  m_extant_query_handles.emplace(query_handle, current_frame,
-                                 event_number, event_type);
+  m_extant_query_handles.emplace(query_handle, current_frame, event_number);
 }
 
 void
@@ -298,7 +296,8 @@ IntelPerfMetricGroup::publish(std::ostream *outf, bool wait) {
 }
 
 void
-IntelPerfMetricGroup::end() {
+IntelPerfMetricGroup::end(const std::string &event_type) {
+  m_extant_query_handles.back().event_type = event_type;
   GlFunctions::EndPerfQueryINTEL(m_extant_query_handles.back().handle);
 }
 
@@ -393,9 +392,8 @@ class AMDPerfMetricGroup : public PerfMetricGroup, NoCopy, NoAssign {
   ~AMDPerfMetricGroup();
   const std::string &name() const { return m_group_name; }
   void get_metric_names(std::vector<std::string> *out_names);
-  void begin(int current_frame, int event_number,
-             const std::string &event_type);
-  void end();
+  void begin(int current_frame, int event_number);
+  void end(const std::string &event_type);
   void publish(std::ostream *outf, bool wait);
 
  private:
@@ -466,8 +464,7 @@ AMDPerfMetricGroup::get_metric_names(std::vector<std::string> *out_names) {
     out_names->push_back(i.second->name());
 }
 
-void AMDPerfMetricGroup::begin(int current_frame, int event_number,
-                               const std::string &event_type) {
+void AMDPerfMetricGroup::begin(int current_frame, int event_number) {
   if (m_free_monitors.empty()) {
     m_free_monitors.resize(10000);
     GlFunctions::GenPerfMonitorsAMD(m_free_monitors.size(),
@@ -488,12 +485,13 @@ void AMDPerfMetricGroup::begin(int current_frame, int event_number,
   }
   GlFunctions::BeginPerfMonitorAMD(m_free_monitors.back());
   m_extant_monitors.emplace(PerfValue(m_free_monitors.back(), current_frame,
-                                      event_number, event_type));
+                                      event_number));
   m_free_monitors.pop_back();
 }
 
 void
-AMDPerfMetricGroup::end() {
+AMDPerfMetricGroup::end(const std::string &event_type) {
+  m_extant_monitors.back().event_type = event_type;
   GlFunctions::EndPerfMonitorAMD(m_extant_monitors.back().handle);
 }
 
@@ -681,15 +679,18 @@ FrameRunner::advanceToFrame(int f) {
 
 void
 FrameRunner::run(int end_frame) {
-  // warm up with 5 frames
   // retrace count frames and output frame time
   GlFunctions::Finish();
   
-  Call *call = parser->parse_call();
-  m_current_group->begin(m_current_frame, ++m_current_event, call->name());
-  while ((call = parser->parse_call())) {
+  m_current_group->begin(m_current_frame, ++m_current_event);
+  while (Call *call = parser->parse_call()) {
     bool save_call = false;
     retracer.retrace(*call);
+    if (RetraceRender::isRender(*call) && m_interval == kPerRender) {
+      // stop/start metrics to measure the render
+      m_current_group->end(call->name());
+      m_current_group->begin(m_current_frame, ++m_current_event);
+    }
 
     if (ThreadContext::changesContext(*call)) {
       Context *c = getCurrentContext();
@@ -702,17 +703,34 @@ FrameRunner::run(int end_frame) {
         m_context_metrics[c] = create_metric_group(m_group_id);
 
       m_current_group = m_context_metrics[c];
+      m_current_group->begin(m_current_frame, ++m_current_event);
     }
 
     const bool frame_boundary = call->flags & trace::CALL_FLAG_END_FRAME;
     if (frame_boundary) {
-      m_current_group->end();
-      m_current_group->publish(m_out, false);
-      m_current_group->begin(m_current_frame, ++m_current_event, call->name());
       // do not count bogus frame terminators
       if (strncmp("glFrameTerminatorGREMEDY", call->sig->name,
                   strlen("glFrameTerminatorGREMEDY")) != 0)
+      {
+        m_current_group->end(call->name());
+        m_current_group->publish(m_out, false);
         ++m_current_frame;
+        m_current_group->begin(m_current_frame, ++m_current_event);
+        if (m_context_metrics.size() > 1) {
+          glretrace::Context *original_context = NULL;
+          for (auto g : m_context_metrics) {
+            if (g.second == m_current_group) {
+              original_context = g.first;
+              continue;
+            }
+            // make context current for group
+            retracer.retrace(*m_context_calls[g.first]);
+            g.second->end(call->name());
+            g.second->publish(m_out, false);
+          }
+          retracer.retrace(*m_context_calls[original_context]);
+        }
+      }
     }
 
     if (!save_call)
@@ -724,6 +742,7 @@ FrameRunner::run(int end_frame) {
   for (auto g : m_context_metrics) {
     // make context current for group
     retracer.retrace(*m_context_calls[g.first]);
+    g.second->end("last_render");
     GlFunctions::Finish();
     g.second->publish(m_out, true);
   }

@@ -48,9 +48,15 @@ class Context;
 
 class FrameRunner {
  public:
+  enum MetricInterval {
+    kPerRender,
+    kPerFrame
+  };
+
   FrameRunner(const std::string filepath,
               const std::string out_path,
-              std::string metrics_group);
+              std::string metrics_group,
+              MetricInterval interval = kPerFrame);
   ~FrameRunner();
   void advanceToFrame(int f);
   void init();
@@ -60,6 +66,7 @@ class FrameRunner {
   std::ofstream m_of;
   std::ostream *m_out;
   int m_current_frame, m_current_event, m_group_id;
+  const MetricInterval m_interval;
   std::string m_metrics_group;
   PerfMetricGroup *m_current_group;
   std::map<Context *, PerfMetricGroup *> m_context_metrics;

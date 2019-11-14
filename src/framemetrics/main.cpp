@@ -42,8 +42,12 @@ int main(int argc, char *argv[]) {
   const char *usage = "USAGE: framemetrics -g {metrics_group} [-o {out_file}]"
                       "-f {trace} frame_start frame_end\n";
   int opt;
-  while ((opt = getopt(argc, argv, "g:f:p:o:h")) != -1) {
+  FrameRunner::MetricInterval interval = FrameRunner::kPerFrame;
+  while ((opt = getopt(argc, argv, "dg:f:p:o:h")) != -1) {
     switch (opt) {
+      case 'd':
+        interval = FrameRunner::kPerRender;
+        continue;
       case 'g':
         metrics_group = optarg;
         continue;
@@ -82,7 +86,7 @@ int main(int argc, char *argv[]) {
     return -1;
   }
   glretrace::GlFunctions::Init();
-  FrameRunner runner(frame_file, out_file, metrics_group);
+  FrameRunner runner(frame_file, out_file, metrics_group, interval);
 
   runner.advanceToFrame(frames[0]);
   runner.init();
