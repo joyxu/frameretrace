@@ -56,7 +56,12 @@ cmake support.
  $ meson setup build
  $ ninja -C build
 ```
+### Debian
+Minimal packages required to build frameretrace:
+```
+sudo apt install build-essential libprocps-dev meson ninja-build python3-setuptools qml-module-qt-labs-folderlistmodel qml-module-qt-labs-settings qml-module-qtquick-controls qml-module-qtquick-controls2 qml-module-qtquick-dialogs qtbase5-dev qtbase5-dev qtdeclarative5-dev zlib1g-dev libpng-dev ccache
 
+```
 ### Windows
 #### System Setup
 ##### Qt
