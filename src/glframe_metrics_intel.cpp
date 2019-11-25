@@ -110,7 +110,31 @@ class PerfMetricGroup : public NoCopy, NoAssign {
 
 namespace glretrace {
 
-class PerfMetricsContext : public NoCopy, NoAssign {
+class PerfMetricsContextInterface {
+ public:
+  virtual int groupCount() const = 0;
+  virtual void selectMetric(MetricId metric) = 0;
+  virtual void selectGroup(int index) = 0;
+  virtual void begin(RenderId render) = 0;
+  virtual void end() = 0;
+  virtual void publish(PerfMetricsIntel::MetricMap *metrics) = 0;
+  virtual ~PerfMetricsContextInterface() {}
+};
+
+class NoMetrics : public PerfMetricsContextInterface {
+ public:
+  NoMetrics() {}
+  int groupCount() const { return 0; }
+  void selectMetric(MetricId metric) {}
+  void selectGroup(int index) {}
+  void begin(RenderId render) {}
+  void end() {}
+  void publish(PerfMetricsIntel::MetricMap *metrics) {}
+  ~NoMetrics() {}
+};
+
+class PerfMetricsContext : public PerfMetricsContextInterface,
+                           NoCopy, NoAssign {
  public:
   explicit PerfMetricsContext(OnFrameRetrace *cb);
   ~PerfMetricsContext();
@@ -417,6 +441,8 @@ PerfMetricsContext::groupCount() const {
 
 void
 PerfMetricsContext::selectGroup(int index) {
+  if (groups.empty())
+    return;
   current_group = groups[index];
   current_metric = ALL_METRICS_IN_GROUP;
 }
@@ -425,6 +451,10 @@ PerfMetricsIntel::PerfMetricsIntel(OnFrameRetrace *cb)
     : m_current_group(0) {
   Context *c = getCurrentContext();
   m_current_context = new PerfMetricsContext(cb);
+  if (!m_current_context->groupCount()) {
+    delete m_current_context;
+    m_current_context = new NoMetrics();
+  }
   m_contexts[c] = m_current_context;
 }
 
@@ -499,6 +529,10 @@ PerfMetricsIntel::beginContext() {
     // create a new metrics context
     GRLOG(glretrace::WARN, "new context in frame");
     m_current_context = new PerfMetricsContext(NULL);
+    if (!m_current_context->groupCount()) {
+      delete m_current_context;
+      m_current_context = new NoMetrics();
+    }
     m_contexts[c] = m_current_context;
   }
   m_current_context->selectGroup(m_current_group);
