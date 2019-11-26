@@ -57,12 +57,14 @@ extern retrace::Retracer retracer;
 FrameRunner::FrameRunner(const std::string filepath,
                          const std::string out_path,
                          std::string metrics_group,
+                         int max_frame,
                          MetricInterval interval)
     : m_of(), m_out(NULL),
       m_current_frame(1),
       m_group_id(-1),
       m_interval(interval),
-      m_metrics_group(metrics_group) {
+      m_metrics_group(metrics_group),
+      m_parser(max_frame) {
   if (out_path.size()) {
     m_of.open(out_path);
     m_out = new std::ostream(m_of.rdbuf());
@@ -77,6 +79,7 @@ FrameRunner::FrameRunner(const std::string filepath,
   retracer.addCallbacks(glretrace::cgl_callbacks);
   retracer.addCallbacks(glretrace::egl_callbacks);
   retrace::setUp();
+  parser = &m_parser;
   parser->open(filepath.c_str());
 }
 

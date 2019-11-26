@@ -26,6 +26,7 @@ endif
 framestat_exe = executable('framemetrics',
                            [
                              'glframe_runner.cpp',
+                             'glframe_threadedparser.cpp',
                              'main.cpp',
                            ],
                            dependencies : [

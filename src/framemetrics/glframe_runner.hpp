@@ -35,6 +35,7 @@
 #include <fstream> // NOLINT
 
 #include "glframe_thread_context.hpp"
+#include "glframe_threadedparser.hpp"
 
 namespace trace {
 class Call;
@@ -56,6 +57,7 @@ class FrameRunner {
   FrameRunner(const std::string filepath,
               const std::string out_path,
               std::string metrics_group,
+              int max_frame,
               MetricInterval interval = kPerFrame);
   ~FrameRunner();
   void advanceToFrame(int f);
@@ -71,6 +73,7 @@ class FrameRunner {
   PerfMetricGroup *m_current_group;
   std::map<Context *, PerfMetricGroup *> m_context_metrics;
   std::map<Context *, trace::Call*> m_context_calls;
+  ThreadedParser m_parser;
 };
 
 }  // namespace glretrace

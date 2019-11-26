@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
     return -1;
   }
   glretrace::GlFunctions::Init();
-  FrameRunner runner(frame_file, out_file, metrics_group, interval);
+  FrameRunner runner(frame_file, out_file, metrics_group, frames.back(), interval);
 
   runner.advanceToFrame(frames[0]);
   runner.init();
