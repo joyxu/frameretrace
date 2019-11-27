@@ -37,6 +37,7 @@ exe = executable('bargraph_test', [src, bargraphtest_moc],
                                  bargraph_dep,
                                  gtest_dep,
                                  frameretrace_dep,
+                                 protobuf_dep,
                                  qt5_dep])
 
 bargraphtest_lib = static_library('bargraph_test',
