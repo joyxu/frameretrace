@@ -73,6 +73,7 @@ class FrameRunner {
   PerfMetricGroup *m_current_group;
   std::map<Context *, PerfMetricGroup *> m_context_metrics;
   std::map<Context *, trace::Call*> m_context_calls;
+  std::map<unsigned long long, Context *> m_retraced_contexts;
   ThreadedParser m_parser;
 };
 

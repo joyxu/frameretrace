@@ -664,6 +664,7 @@ FrameRunner::advanceToFrame(int f) {
     const bool frame_boundary = call->flags & trace::CALL_FLAG_END_FRAME;
     if (ThreadContext::changesContext(*call)) {
       Context *c = getCurrentContext();
+      m_retraced_contexts[call->arg(2).toUIntPtr()] = c;
       if (m_context_calls.find(c) == m_context_calls.end()) {
         m_context_calls[c] = call;
         save_call = true;
@@ -688,6 +689,21 @@ FrameRunner::run(int end_frame) {
   m_current_group->begin(m_current_frame, ++m_current_event);
   while (Call *call = parser->parse_call()) {
     bool save_call = false;
+
+    if (ThreadContext::changesContext(*call)) {
+        Context *current = getCurrentContext();
+        auto new_context = call->arg(2).toUIntPtr();
+        if ((new_context == 0) ||
+            (m_retraced_contexts[new_context] == current)) {
+          // don't retrace useless context switches
+          delete call;
+          continue;
+        } else {
+          // call actually changes context
+          m_current_group->end(call->name());
+        }
+      }
+
     retracer.retrace(*call);
     if (RetraceRender::isRender(*call) && m_interval == kPerRender) {
       // stop/start metrics to measure the render
@@ -728,7 +744,6 @@ FrameRunner::run(int end_frame) {
             }
             // make context current for group
             retracer.retrace(*m_context_calls[g.first]);
-            g.second->end(call->name());
             g.second->publish(m_out, false);
           }
           retracer.retrace(*m_context_calls[original_context]);
