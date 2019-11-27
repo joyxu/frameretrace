@@ -539,7 +539,7 @@ AMDPerfMetricGroup::publish(std::ostream *outf, bool wait) {
       const GLuint *group = reinterpret_cast<const GLuint *>(buf_ptr);
       const GLuint *counter = group + 1;
       buf_ptr += 2*sizeof(GLuint);
-      assert(*group == m_group_id);
+      assert(*group == (uint)m_group_id);
       int bytes_read = 0;
       m_metrics[*counter]->getMetric(buf_ptr, &bytes_read);
       buf_ptr += bytes_read;
