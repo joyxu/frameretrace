@@ -30,6 +30,7 @@
 #include <string>
 #include <vector>
 
+#include "os_time.hpp"
 #include "glframe_glhelper.hpp"
 #include "glframe_runner.hpp"
 
@@ -90,6 +91,16 @@ int main(int argc, char *argv[]) {
 
   runner.advanceToFrame(frames[0]);
   runner.init();
+  long long startTime = os::getTime();
   runner.run(frames[1]);
+  long long endTime = os::getTime();
+  const int frameNo = frames[1] - frames[0];
+  float timeInterval = (endTime - startTime) * (1.0 / os::timeFrequency);
+
+  std::cout << 
+      "Rendered " << frameNo << " frames"
+      " in " <<  timeInterval << " secs,"
+      " average of " << (frameNo/timeInterval) << " fps\n";
+
   return 0;
 }
