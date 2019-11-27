@@ -58,11 +58,13 @@ FrameRunner::FrameRunner(const std::string filepath,
                          const std::string out_path,
                          std::string metrics_group,
                          int max_frame,
-                         MetricInterval interval)
+                         MetricInterval interval,
+                         int event_interval)
     : m_of(), m_out(NULL),
       m_current_frame(1),
       m_group_id(-1),
       m_interval(interval),
+      m_event_interval(event_interval),
       m_metrics_group(metrics_group),
       m_parser(max_frame) {
   if (out_path.size()) {
@@ -685,7 +687,7 @@ void
 FrameRunner::run(int end_frame) {
   // retrace count frames and output frame time
   GlFunctions::Finish();
-  
+
   m_current_group->begin(m_current_frame, ++m_current_event);
   while (Call *call = parser->parse_call()) {
     bool save_call = false;
@@ -706,9 +708,12 @@ FrameRunner::run(int end_frame) {
 
     retracer.retrace(*call);
     if (RetraceRender::isRender(*call) && m_interval == kPerRender) {
-      // stop/start metrics to measure the render
-      m_current_group->end(call->name());
-      m_current_group->begin(m_current_frame, ++m_current_event);
+      ++m_current_event;
+      if (m_current_event % m_event_interval == 0) {
+        // stop/start metrics to measure the render
+        m_current_group->end(call->name());
+        m_current_group->begin(m_current_frame, m_current_event);
+      }
     }
 
     if (ThreadContext::changesContext(*call)) {
@@ -731,10 +736,17 @@ FrameRunner::run(int end_frame) {
       if (strncmp("glFrameTerminatorGREMEDY", call->sig->name,
                   strlen("glFrameTerminatorGREMEDY")) != 0)
       {
-        m_current_group->end(call->name());
-        m_current_group->publish(m_out, false);
+        ++m_current_event;
         ++m_current_frame;
-        m_current_group->begin(m_current_frame, ++m_current_event);
+        if (m_interval == kPerRender || m_interval == kPerFrame) {
+
+          if ((m_interval == kPerRender) ||
+              (m_interval == kPerFrame && m_current_frame % m_event_interval == 0)) {
+            m_current_group->end(call->name());
+            m_current_group->publish(m_out, false);
+            m_current_group->begin(m_current_frame, m_current_event);
+          }
+        }
         if (m_context_metrics.size() > 1) {
           glretrace::Context *original_context = NULL;
           for (auto g : m_context_metrics) {

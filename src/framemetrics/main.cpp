@@ -40,14 +40,34 @@ int main(int argc, char *argv[]) {
   std::string metrics_group = "none";
   std::string frame_file, out_file;
   std::vector<int> frames;
-  const char *usage = "USAGE: framemetrics -g {metrics_group} [-o {out_file}]"
-                      "-f {trace} frame_start frame_end\n";
+  const char *usage = "USAGE: framemetrics [-a|-d] [-i {interval}] -g {metrics_group} [-o {out_file}]"
+                      "-f {trace} frame_start frame_end\n"
+                      "\t-d metric events measured for draw calls\n"
+                      "\t-a metrics measured for full trace\n"
+                      "\t-i number of events to record before reporting metrics\n"
+                      "\tPrints available metrics groups when no group specified\n";
+
   int opt;
+  int event_interval = 1;
   FrameRunner::MetricInterval interval = FrameRunner::kPerFrame;
-  while ((opt = getopt(argc, argv, "dg:f:p:o:h")) != -1) {
+  while ((opt = getopt(argc, argv, "adg:f:p:o:i:h")) != -1) {
     switch (opt) {
+      case 'a':
+        if (interval == FrameRunner::kPerFrame) {
+          printf("ERROR: -a and -d are mutually exclusive\n%s", usage);
+          return -1;
+        }
+        interval = FrameRunner::kPerTrace;
+        continue;
       case 'd':
+        if (interval == FrameRunner::kPerTrace) {
+          printf("ERROR: -a and -d are mutually exclusive\n%s", usage);
+          return -1;
+        }
         interval = FrameRunner::kPerRender;
+        continue;
+      case 'i':
+        event_interval = atoi(optarg);
         continue;
       case 'g':
         metrics_group = optarg;
@@ -87,7 +107,7 @@ int main(int argc, char *argv[]) {
     return -1;
   }
   glretrace::GlFunctions::Init();
-  FrameRunner runner(frame_file, out_file, metrics_group, frames.back(), interval);
+  FrameRunner runner(frame_file, out_file, metrics_group, frames.back(), interval, event_interval);
 
   runner.advanceToFrame(frames[0]);
   runner.init();
