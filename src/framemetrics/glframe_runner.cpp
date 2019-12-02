@@ -686,12 +686,25 @@ FrameRunner::advanceToFrame(int f) {
 
 void
 FrameRunner::run(int end_frame) {
+  std::vector<Call*> calls;
+  while (Call *call = parser->parse_call()) {
+    calls.push_back(call);
+    if (call->flags & trace::CALL_FLAG_END_FRAME)
+      break;
+  }
+  
   // retrace count frames and output frame time
   GlFunctions::Finish();
 
   m_current_group->begin(m_current_frame, ++m_current_event);
-  while (Call *call = parser->parse_call()) {
-    bool save_call = false;
+  // while (Call *call = parser->parse_call()) {
+  auto call_it = calls.begin();
+  while (true) {
+    Call *call = *call_it;
+    ++call_it;
+    if (call_it == calls.end())
+      call_it = calls.begin();
+    // bool save_call = false;
 
     if (ThreadContext::changesContext(*call)) {
         Context *current = getCurrentContext();
@@ -699,7 +712,7 @@ FrameRunner::run(int end_frame) {
         if ((new_context == 0) ||
             (m_retraced_contexts[new_context] == current)) {
           // don't retrace useless context switches
-          delete call;
+          // delete call;
           continue;
         } else {
           // call actually changes context
@@ -721,7 +734,7 @@ FrameRunner::run(int end_frame) {
       Context *c = getCurrentContext();
       if (m_context_calls.find(c) == m_context_calls.end()) {
         m_context_calls[c] = call;
-        save_call = true;
+        // save_call = true;
       }
 
       if (m_context_metrics.find(c) == m_context_metrics.end())
@@ -764,11 +777,12 @@ FrameRunner::run(int end_frame) {
       }
     }
 
-    if (!save_call)
-      delete call;
+    // if (!save_call)
+    //   delete call;
 
-    if (m_current_frame >= end_frame)
-      break;
+    // if (m_current_frame >= end_frame)
+    //   break;
+
   }
   for (auto g : m_context_metrics) {
     // make context current for group
