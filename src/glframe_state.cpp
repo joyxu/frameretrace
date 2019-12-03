@@ -71,14 +71,21 @@ StateTrack::StateTrack(OutputPoller *p)
 
 StateTrack::TrackMap::TrackMap() {
   lookup["glAttachShader"] = &StateTrack::trackAttachShader;
+  lookup["glAttachObjectARB"] = &StateTrack::trackAttachShader;
   lookup["glCreateShader"] = &StateTrack::trackCreateShader;
+  lookup["glCreateShaderObjectARB"] = &StateTrack::trackCreateShader;
   lookup["glLinkProgram"] = &StateTrack::trackLinkProgram;
+  lookup["glLinkProgramARB"] = &StateTrack::trackLinkProgram;
   lookup["glShaderSource"] = &StateTrack::trackShaderSource;
+  lookup["glShaderSourceARB"] = &StateTrack::trackShaderSource;
   lookup["glUseProgram"] = &StateTrack::trackUseProgram;
   lookup["glDeleteProgram"] = &StateTrack::trackDeleteProgram;
   lookup["glBindAttribLocation"] = &StateTrack::trackBindAttribLocation;
+  lookup["glBindAttribLocationARB"] = &StateTrack::trackBindAttribLocation;
   lookup["glGetAttribLocation"] = &StateTrack::trackGetAttribLocation;
+  lookup["glGetAttribLocationARB"] = &StateTrack::trackGetAttribLocation;
   lookup["glGetUniformLocation"] = &StateTrack::trackGetUniformLocation;
+  lookup["glGetUniformLocationARB"] = &StateTrack::trackGetUniformLocation;
   lookup["glGetProgramResourceName"] = &StateTrack::trackGetProgramResourceName;
   lookup["glGetUniformBlockIndex"] = &StateTrack::trackGetUniformBlockIndex;
   lookup["glUniformBlockBinding"] = &StateTrack::trackUniformBlockBinding;
