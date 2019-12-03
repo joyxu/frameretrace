@@ -26,8 +26,13 @@
  **************************************************************************/
 
 #include "glframe_thread_context.hpp"
+
+#include <GL/gl.h>
+#include <GL/glext.h>
+
 #include "trace_model.hpp"
 #include "glframe_retrace_render.hpp"
+#include "glretrace.hpp"
 
 using glretrace::ThreadContext;
 
@@ -68,4 +73,27 @@ ThreadContext::changesContext(const trace::Call &call) {
               strlen("glXMakeContextCurrent")) == 0)
     return true;
   return false;
+}
+
+bool
+ThreadContext::nullContext(trace::Call &c,
+                           RetraceFilter *r)
+{
+  assert(changesContext(c));
+  auto new_context = c.arg(2).toUIntPtr();
+  if (new_context == 0)
+    return true;
+  Context *current = getCurrentContext();
+  r->retrace(c);
+  Context *next = getCurrentContext();
+  if (next == current)
+    return true;
+
+  // hack the call to set the context to zero.  The call will be
+  // re-executed with the correct value on the subsequent render;
+  delete c.args[2].value;
+  c.args[2].value = new trace::UInt(0);
+  r->retrace(c);
+  return false;
+
 }

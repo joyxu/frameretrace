@@ -31,6 +31,7 @@
 #include <map>
 
 #include "glframe_traits.hpp"
+#include "glframe_filter.hpp"
 
 namespace trace {
 class Call;
@@ -44,6 +45,8 @@ class ThreadContext : public NoCopy, NoAssign {
   ~ThreadContext();
   void track(trace::Call *c, bool *is_owned_by_thread_tracker);
   static bool changesContext(const trace::Call &c);
+  static bool nullContext(trace::Call &c,
+                          RetraceFilter *r);
 
  private:
   unsigned m_current_thread;

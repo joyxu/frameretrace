@@ -193,6 +193,11 @@ RetraceRender::RetraceRender(unsigned int tex2x2,
     const bool render = isRender(*call);
     compute = isCompute(*call);
     if (ThreadContext::changesContext(*call)) {
+      if (ThreadContext::nullContext(*call, retracer)) {
+        delete call;
+        continue;
+      }
+      // else
       m_changes_context = true;
       if (m_api_calls.size() > 0) {
         // this ought to be in the next context
