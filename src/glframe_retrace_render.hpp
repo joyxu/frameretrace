@@ -102,7 +102,8 @@ class RetraceRender {
 
   trace::AbstractParser *m_parser;
   RetraceFilter *m_retracer;
-  RenderBookmark m_bookmark;
+  std::vector<trace::Call *> m_calls;
+  trace::Call *m_last_call;
   std::string m_original_vs, m_original_fs,
     m_original_tess_control, m_original_tess_eval,
     m_original_geom,

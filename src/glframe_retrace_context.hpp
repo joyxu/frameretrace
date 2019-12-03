@@ -130,11 +130,8 @@ class RetraceContext {
   void revertExperiments(StateTrack *tracker);
 
  private:
-  trace::AbstractParser *m_parser;
   RetraceFilter *m_retracer;
-  trace::ParseBookmark m_start_bookmark, m_end_bookmark;
   trace::Call *m_context_switch;
-  RenderBookmark m_context_start;
   std::map<RenderId, RetraceRender*> m_renders;
   std::vector<RenderId> m_end_render_target_regions;
   bool m_ends_frame;

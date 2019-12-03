@@ -167,8 +167,7 @@ RetraceRender::RetraceRender(unsigned int tex2x2,
                              trace::AbstractParser *parser,
                              RetraceFilter *retracer,
                              StateTrack *tracker)
-    : m_parser(parser),
-      m_retracer(retracer),
+    : m_retracer(retracer),
       m_rt_program(-1),
       m_overdraw_program(-1),
       m_retrace_program(-1),
@@ -182,7 +181,6 @@ RetraceRender::RetraceRender(unsigned int tex2x2,
       m_geometry_rt_override(new StateOverride()),
       m_overdraw_rt_override(new StateOverride()),
       m_texture_override(new TextureOverride(tex2x2)) {
-  m_parser->getBookmark(m_bookmark.start);
   trace::Call *call = NULL;
   std::stringstream call_stream;
   bool compute = false;
@@ -207,12 +205,15 @@ RetraceRender::RetraceRender(unsigned int tex2x2,
                 trace::DUMP_FLAG_NO_COLOR);
     m_api_calls.push_back(call_stream.str());
     call_stream.str("");
-    delete call;
 
-    ++(m_bookmark.numberOfCalls);
-    if (render || m_end_of_frame)
+    if (render || m_end_of_frame) {
+      m_last_call = call;
       break;
-    m_parser->getBookmark(call_start);
+    } else {
+      m_calls.push_back(call);
+    }
+
+    parser->getBookmark(call_start);
   }
   m_original_program = tracker->CurrentProgram();
   m_original_vs = tracker->currentVertexShader().shader;
@@ -306,18 +307,10 @@ RetraceRender::~RetraceRender() {
 void
 RetraceRender::retraceRenderTarget(const StateTrack &tracker,
                                    RenderTargetType type) const {
-  // check that the parser is in correct state
-  trace::ParseBookmark bm;
-  m_parser->getBookmark(bm);
-  assert(bm.offset == m_bookmark.start.offset);
-
   // play up to but not past the end of the render
-  for (unsigned int calls = 0; calls < m_bookmark.numberOfCalls - 1; ++calls) {
-    trace::Call *call = m_parser->parse_call();
-    assert(call);
+  for (auto call : m_calls) {
     tracker.retraceProgramSideEffects(m_original_program, call, m_retracer);
     m_retracer->retrace(*call);
-    delete(call);
   }
 
   if ((m_simple_shader ||
@@ -345,14 +338,9 @@ RetraceRender::retraceRenderTarget(const StateTrack &tracker,
     m_overdraw_rt_override->overrideState();
 
   // retrace the final render
-  trace::Call *call = m_parser->parse_call();
-  assert(call);
   if ((type != NULL_RENDER) &&
-      (!m_disabled) &&
-      // do not retrace swap buffers: the gpu cost is variable
-      (!endsFrame(*call)))
-    m_retracer->retrace(*call);
-  delete(call);
+      (!m_disabled))
+    m_retracer->retrace(*m_last_call);
 
   m_highlight_rt_override->restoreState();
   m_geometry_rt_override->restoreState();
@@ -369,22 +357,16 @@ RetraceRender::retraceRenderTarget(const StateTrack &tracker,
 void
 RetraceRender::retrace(StateTrack *tracker) const {
   // check that the parser is in correct state
-  trace::ParseBookmark bm;
-  m_parser->getBookmark(bm);
-  assert(bm.offset == m_bookmark.start.offset);
-
   tracker->flush();
 
   // play up to but not past the end of the render
-  for (unsigned int calls = 0; calls < m_bookmark.numberOfCalls - 1; ++calls) {
-    trace::Call *call = m_parser->parse_call();
+  for (auto call : m_calls) {
     assert(call);
 
     tracker->retraceProgramSideEffects(m_original_program, call, m_retracer);
 
     m_retracer->retrace(*call);
     tracker->track(*call);
-    delete(call);
   }
 
   // select the shader override if necessary
@@ -399,36 +381,20 @@ RetraceRender::retrace(StateTrack *tracker) const {
   }
 
   // retrace the final render
-  trace::Call *call = m_parser->parse_call();
-  assert(call);
   if (!m_disabled)
-    m_retracer->retrace(*call);
+    m_retracer->retrace(*m_last_call);
   if (tracker)
-    tracker->track(*call);
-  delete(call);
+    tracker->track(*m_last_call);
   StateTrack::useProgramGL(m_original_program);
 }
 
 void
 RetraceRender::retrace(const StateTrack &tracker,
                        const CallbackHook *context) const {
-  // check that the parser is in correct state
-  trace::ParseBookmark bm;
-  m_parser->getBookmark(bm);
-  assert(bm.offset == m_bookmark.start.offset);
-
   // play up to but not past the end of the render
-  for (unsigned int calls = 0; calls < m_bookmark.numberOfCalls - 1; ++calls) {
-    trace::Call *call = m_parser->parse_call();
-    assert(call);
-
+  for (auto call : m_calls) {
     tracker.retraceProgramSideEffects(m_original_program, call, m_retracer);
-
-    // context change must be on the first call of the render
-    assert((!ThreadContext::changesContext(*call)) || calls == 0);
     m_retracer->retrace(*call);
-
-    delete(call);
   }
 
   // select the shader override if necessary
@@ -443,13 +409,8 @@ RetraceRender::retrace(const StateTrack &tracker,
   m_texture_override->overrideTexture();
 
   // retrace the final render
-  trace::Call *call = m_parser->parse_call();
-  assert(call);
-  if ((!m_disabled) &&
-      // do not retrace swap buffers: the gpu cost is variable
-      (!endsFrame(*call)))
-    m_retracer->retrace(*call);
-  delete(call);
+  if (!m_disabled)
+    m_retracer->retrace(*m_last_call);
 
   if (context) {
     context->onCallbackReady();

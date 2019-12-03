@@ -74,7 +74,7 @@ RetraceContext::RetraceContext(RenderId current_render,
                                RetraceFilter* retracer,
                                StateTrack *tracker,
                                const CancellationPolicy &cancel)
-    : m_parser(parser), m_retracer(retracer),
+    : m_retracer(retracer),
       m_context_switch(NULL), m_ends_frame(false),
       m_textures(new Textures),
       m_cancelPolicy(cancel) {
@@ -88,14 +88,11 @@ RetraceContext::RetraceContext(RenderId current_render,
       geometry_render_supported = 0;
   }
 
-  m_parser->getBookmark(m_start_bookmark);
   trace::Call *call = parser->parse_call();
   if (ThreadContext::changesContext(*call))
     m_context_switch = call;
   else
     delete call;
-
-  m_parser->setBookmark(m_start_bookmark);
 
   int current_render_buffer = RetraceRender::currentRenderBuffer();
   // play through the frame, generating renders
@@ -105,16 +102,6 @@ RetraceContext::RetraceContext(RenderId current_render,
     ++current_render;
     if (r->endsFrame()) {
       m_ends_frame = true;
-      break;
-    }
-
-    // peek ahead to see if next call is in the following context
-    m_parser->getBookmark(m_end_bookmark);
-    call = parser->parse_call();
-    m_parser->setBookmark(m_end_bookmark);
-    if (ThreadContext::changesContext(*call)) {
-      m_parser->setBookmark(m_end_bookmark);
-      delete call;
       break;
     }
 
@@ -566,10 +553,8 @@ RetraceContext::retraceShaderAssembly(const RenderSelection &selection,
                                       ExperimentId experimentCount,
                                       StateTrack *tracker,
                                       OnFrameRetrace *callback) {
-  trace::ParseBookmark bm;
-  m_parser->getBookmark(bm);
-  assert(bm.offset == m_start_bookmark.offset);
-
+  if (m_context_switch)
+    m_retracer->retrace(*m_context_switch);
   for (auto r : m_renders) {
     r.second->retrace(tracker);
     if (isSelected(r.first, selection)) {
@@ -593,10 +578,8 @@ RetraceContext::retraceBatch(const RenderSelection &selection,
                              BatchControl *control,
                              OutputPoller *poller,
                              OnFrameRetrace *callback) {
-  trace::ParseBookmark bm;
-  m_parser->getBookmark(bm);
-  assert(bm.offset == m_start_bookmark.offset);
-
+  if (m_context_switch)
+    m_retracer->retrace(*m_context_switch);
   for (auto r : m_renders) {
     if (isSelected(r.first, selection) &&
         (!m_cancelPolicy.isCancelled(selection.id, experimentCount))) {
@@ -636,10 +619,8 @@ RetraceContext::retraceUniform(const RenderSelection &selection,
                                ExperimentId experimentCount,
                                const StateTrack &tracker,
                                OnFrameRetrace *callback) {
-  trace::ParseBookmark bm;
-  m_parser->getBookmark(bm);
-  assert(bm.offset == m_start_bookmark.offset);
-
+  if (m_context_switch)
+    m_retracer->retrace(*m_context_switch);
   for (auto r : m_renders) {
     if (isSelected(r.first, selection)) {
       // pass down the context that is needed to make the uniform callback
@@ -683,6 +664,8 @@ RetraceContext::retraceState(const RenderSelection &selection,
                              ExperimentId experimentCount,
                              const StateTrack &tracker,
                              OnFrameRetrace *callback) {
+  if (m_context_switch)
+    m_retracer->retrace(*m_context_switch);
   for (auto r : m_renders) {
     if (isSelected(r.first, selection)) {
       const StateHook c(selection.id, experimentCount, r.first, callback);
@@ -699,6 +682,8 @@ RetraceContext::setState(const RenderSelection &selection,
                          int offset,
                          const std::string &value,
                          const StateTrack &tracker) {
+  if (m_context_switch)
+    m_retracer->retrace(*m_context_switch);
   for (auto r : m_renders) {
     r.second->retrace(tracker);
     if (isSelected(r.first, selection))
@@ -750,9 +735,8 @@ RetraceContext::retraceTextures(const RenderSelection &selection,
                                 ExperimentId experimentCount,
                                 const StateTrack &tracker,
                                 OnFrameRetrace *callback) {
-  trace::ParseBookmark bm;
-  m_parser->getBookmark(bm);
-  assert(bm.offset == m_start_bookmark.offset);
+  if (m_context_switch)
+    m_retracer->retrace(*m_context_switch);
   glstate::Context c;
   for (auto r : m_renders) {
     if (!isSelected(r.first, selection) ||
