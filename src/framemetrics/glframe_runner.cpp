@@ -61,7 +61,7 @@ FrameRunner::FrameRunner(const std::string filepath,
                          MetricInterval interval,
                          int event_interval)
     : m_of(), m_out(NULL),
-      m_current_frame(1),
+      m_current_frame(0),
       m_current_event(0),
       m_group_id(-1),
       m_interval(interval),
