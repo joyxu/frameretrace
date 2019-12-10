@@ -158,6 +158,9 @@ exec_retracer(const char *main_exe, int port) {
                               port_str.c_str(),
                               NULL};
   glretrace::fork_execv(server_exe.c_str(), args);
+
+  // delay necessary for windows systems
+  glretrace::glretrace_delay(1000);
 }
 
 bool
