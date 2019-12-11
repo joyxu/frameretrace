@@ -115,3 +115,26 @@ Studio projects to add glproc.hpp paths where a directory path is
 needed.  If this hasn't already been fixed, you can edit the project
 files that fail to load and remove the glproc.hpp filename from each
 entry that should configure an include path.
+
+#### Installation
+
+Use the prefix argument at meson setup time to create a distributable
+directory of FrameRetrace executables and DLLs:
+```
+ > meson setup --prefix={full_src_path}/install build
+ > cd build
+ > ninja install
+```
+After building, use Qt's deployment tool to add Qt DLL's to the
+installation path.
+```
+ > c:/Qt/{version}/{mingw_ver}/bin/windeployqt.exe --qmldir {src_dir}/src/ui/qml {install_dir}/bin/frameretrace.exe
+```
+If mingw is not installed on your target system, you can copy the DLLs
+from the mingw installation path to the executable directory.
+Chocolatey's mingw installation path is:
+
+C:/ProgramData/chocolatey/lib/mingw/tools/install/mingw64/bin
+
+You should be able to copy {install_dir} to a target machine and run
+it with no other run-time requirements.
