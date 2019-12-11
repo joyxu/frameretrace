@@ -105,4 +105,16 @@ dep_brotli_enc = dependency('libbrotlienc', fallback : ['brotli', 'dep_brotli_en
 dep_brotli_dec = dependency('libbrotlidec', fallback : ['brotli', 'dep_brotli_decoder'])
 dep_khr = subproject('khronos').get_variable('dep_khr')
 
+if cpp.get_argument_syntax() == 'msvc'
+  dep_mdapi = declare_dependency(include_directories : include_directories('subprojects/metrics-discovery/inc/common/instrumentation/api'))
+else
+  if host_machine.system() == 'windows'
+    # cannot dlopen mdapi from mingw
+    dep_mdapi = []
+  else
+    cmake = import('cmake')
+    dep_mdapi = cmake.subproject('metrics-discovery').dependency('md')
+  endif
+endif
+
 subdir('src')

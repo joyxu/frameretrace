@@ -8,3 +8,5 @@ zlib-1.2.11
 getopt
 mhook
 protobuf
+metrics-discovery
+opengl_headers

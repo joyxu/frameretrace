@@ -54,8 +54,17 @@ else
 		]
 endif
 
+if cpp.get_argument_syntax() == 'msvc' or host_machine.system() == 'linux'
+  mdapi_files = ['glframe_metrics_mdapi.cpp',
+                 'glframe_metrics_mdapi.hpp',
+		]
+else
+  mdapi_files = []
+endif
+
 frameretrace_lib = static_library('frameretrace',
                                   [os_sources,
+				                   mdapi_files,
                                    'glframe_batch.hpp',
                                    'glframe_cancellation.cpp',
                                    'glframe_cancellation.hpp',
@@ -112,6 +121,7 @@ frameretrace_lib = static_library('frameretrace',
                                     dep_apitrace,
                                     amdgpa_dep,
                                     dep_apitrace,
+                                    dep_mdapi,
                                     dep_khr,
                                   ])
 

@@ -103,6 +103,7 @@ class GlFunctions {
                                       GLuint *counterTypeEnum,
                                       GLuint *counterDataTypeEnum,
                                       GLuint64 *rawCounterMaxValue);
+  static void GetPerfQueryIdByNameINTEL (GLchar *queryName, GLuint *queryId);
 
   static void CreatePerfQueryINTEL(GLuint queryId, GLuint *queryHandle);
   static void DeletePerfQueryINTEL(GLuint queryHandle);

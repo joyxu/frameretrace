@@ -1,4 +1,4 @@
-// Copyright (C) Intel Corp.  2017.  All Rights Reserved.
+// Copyright (C) Intel Corp.  2020.  All Rights Reserved.
 
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the
@@ -25,38 +25,45 @@
 //  *   Mark Janes <mark.a.janes@intel.com>
 //  **********************************************************************/
 
+#ifndef _GLFRAME_METRICS_MDAPI_HPP_
+#define _GLFRAME_METRICS_MDAPI_HPP_
+
+#include <map>
+#include <vector>
+
 #include "glframe_metrics.hpp"
+#include "glframe_traits.hpp"
+#include "glframe_retrace.hpp"
 
-#include <string.h>
-#include <string>
+namespace glretrace {
 
-#include "glframe_metrics_intel.hpp"
-#include "glframe_metrics_amd.hpp"
-#include "glframe_metrics_mdapi.hpp"
-#include "glframe_glhelper.hpp"
-#include "glframe_metrics_amd_gpa.hpp"
+class PerfMetricsContextInterface;
+struct Context;
 
-using glretrace::PerfMetrics;
-using glretrace::OnFrameRetrace;
+class MdapiContext;
+class PerfMetricsMdapi : public PerfMetrics, NoCopy, NoAssign {
+ public:
+  explicit PerfMetricsMdapi(OnFrameRetrace *cb);
+  virtual ~PerfMetricsMdapi();
+  int groupCount() const;
+  void selectMetric(MetricId metric);
+  void selectGroup(int index);
+  void begin(RenderId render);
+  void end();
+  void publish(ExperimentId experimentCount,
+               SelectionId selectionCount,
+               OnFrameRetrace *callback);
+  void endContext();
+  void beginContext();
+  typedef std::map<MetricId, std::map<RenderId, float>> MetricMap;
+ private:
+  MdapiContext* m_current_context;
+  std::map<Context*, MdapiContext*> m_contexts;
+  MetricMap m_data;
+  int m_current_group;
+  MetricId m_current_metric;
+};
 
-PerfMetrics *PerfMetrics::Create(OnFrameRetrace *callback) {
-  std::string extensions;
+}  // namespace glretrace
 
-  const GLubyte *renderer = GlFunctions::GetString(GL_RENDERER);
-  if (strstr((const char*)renderer, "AMD") != NULL)
-      return new glretrace::PerfMetricsAMDGPA(callback);
-
-  GlFunctions::GetGlExtensions(&extensions);
-  if (extensions.find("GL_INTEL_performance_query") != std::string::npos)
-#if defined(_WIN64) && !defined(__MINGW32__)
-    // visual studio projects can use MDAPI
-    return new PerfMetricsMdapi(callback);
-#else
-    return new PerfMetricsIntel(callback);
-#endif
-
-  if (extensions.find("GL_AMD_performance_monitor") != std::string::npos)
-    return new PerfMetricsAMD(callback);
-
-  return new glretrace::DummyMetrics();
-}
+#endif /* _GLFRAME_METRICS_MDAPI_HPP_ */

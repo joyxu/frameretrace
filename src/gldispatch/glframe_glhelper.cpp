@@ -78,6 +78,7 @@ static void *pGetString = NULL;
 static void *pGetStringi = NULL;
 static void *pGetPerfQueryInfoINTEL = NULL;
 static void *pGetPerfCounterInfoINTEL = NULL;
+static void *pGetPerfQueryIdByNameINTEL = NULL;
 static void *pCreatePerfQueryINTEL = NULL;
 static void *pDeletePerfQueryINTEL = NULL;
 static void *pBeginPerfQueryINTEL = NULL;
@@ -286,6 +287,8 @@ GlFunctions::Init(void *lookup_fn) {
   assert(pGetStringi);
   pGetPerfQueryInfoINTEL = _GetProcAddress("glGetPerfQueryInfoINTEL");
   assert(pGetPerfQueryInfoINTEL);
+  pGetPerfQueryIdByNameINTEL = _GetProcAddress("glGetPerfQueryIdByNameINTEL");
+  assert(pGetPerfQueryIdByNameINTEL);
   pGetPerfCounterInfoINTEL = _GetProcAddress("glGetPerfCounterInfoINTEL");
   assert(pGetPerfCounterInfoINTEL);
   pCreatePerfQueryINTEL = _GetProcAddress("glCreatePerfQueryINTEL");
@@ -732,6 +735,12 @@ void GlFunctions::GetPerfQueryInfoINTEL(GLuint queryId, GLuint queryNameLength,
                                                   queryName, dataSize,
                                                   noCounters, noInstances,
                                                   capsMask);
+}
+
+void
+GlFunctions::GetPerfQueryIdByNameINTEL (GLchar *queryName, GLuint *queryId) {
+  typedef void (*GETPERFQUERYIDBYNAMEINTEL)(GLchar *queryName, GLuint *queryId);
+  ((GETPERFQUERYIDBYNAMEINTEL)pGetPerfQueryIdByNameINTEL)(queryName, queryId);
 }
 
 void

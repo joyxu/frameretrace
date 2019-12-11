@@ -1,0 +1,5 @@
+[wrap-git]
+directory = metrics-discovery
+url = https://github.com/intel/metrics-discovery
+revision = master
+
