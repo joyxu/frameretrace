@@ -121,7 +121,7 @@ entry that should configure an include path.
 Use the prefix argument at meson setup time to create a distributable
 directory of FrameRetrace executables and DLLs:
 ```
- > meson setup --prefix={full_src_path}/install build
+ > meson setup --wrap-mode=forcefallback --prefix={full_src_path}/install build
  > cd build
  > ninja install
 ```
