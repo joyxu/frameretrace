@@ -91,7 +91,8 @@ frameretrace/subprojects/apitrace/thirdparty.
 
 For mingw:
 ```
- > meson subprojects download 
+ > meson subprojects download
+ > meson wrap promote subprojects/waffle/subprojects/opengl_headers
  > del subprojects\snappy
  > xcopy  subprojects\apitrace\thirdparty\snappy subprojects\snappy /s /e /h /I
  > del subprojects\md5

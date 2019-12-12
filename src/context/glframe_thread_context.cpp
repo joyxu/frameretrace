@@ -35,6 +35,7 @@
 #include "glretrace.hpp"
 
 using glretrace::ThreadContext;
+using glretrace::RetraceFilter;
 
 extern retrace::Retracer retracer;
 

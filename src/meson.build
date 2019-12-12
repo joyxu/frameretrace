@@ -20,6 +20,7 @@
 
 frameretrace_inc = [include_directories('.', 'context', 'gldispatch', 'amd_gpa')]
 
+subdir('gldispatch')
 subdir('context')
 
 rendering_inc = include_directories('ui', 'bargraph')
@@ -32,7 +33,6 @@ proto_generated = proto_gen.process('playback.proto')
 
 thread_dep = dependency('threads')
 
-subdir('gldispatch')
 subdir('amd_gpa')
 
 if host_machine.system() == 'windows'
