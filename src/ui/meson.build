@@ -39,12 +39,6 @@ frameretrace_moc = qt5.preprocess(moc_headers : ['glframe_api_model.hpp',
 frameretrace_qrc = qt5.preprocess(qresources : 'resources.qrc')
 
 cpp = meson.get_compiler('cpp')
-win_deps = []
-if host_machine.system() == 'windows'
-  win_deps += [cpp.find_library('ws2_32'), # winsock
-	       cpp.find_library('Opengl32'), #opengl
-	       ]
-endif
 
 frameretrace_exe = executable('frameretrace',
                               [frameretrace_moc,

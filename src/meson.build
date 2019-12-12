@@ -35,10 +35,14 @@ thread_dep = dependency('threads')
 
 subdir('amd_gpa')
 
+win_deps = []
 if host_machine.system() == 'windows'
   os_sources = ['glframe_os_win.cpp',
                 'glframe_thread_win.cpp',
                 'glframe_win_shaders.cpp',
+	       ]
+  win_deps += [cpp.find_library('ws2_32'), # winsock
+	       cpp.find_library('Opengl32'), #opengl
 	       ]
 else
   os_sources = ['glframe_gpu_speed_linux.cpp',
@@ -117,7 +121,8 @@ frameretrace_dep = declare_dependency(link_with : frameretrace_lib,
 subdir('bargraph')
 subdir('server')
 subdir('ui')
+subdir('test')
 subdir('framestat')
 subdir('framemetrics')
-subdir('test')
+
 
