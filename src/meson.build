@@ -119,6 +119,5 @@ subdir('server')
 subdir('ui')
 subdir('framestat')
 subdir('framemetrics')
-if libwaffle.found()
-  subdir('test')
-endif
+subdir('test')
+

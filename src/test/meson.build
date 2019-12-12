@@ -37,7 +37,7 @@ frameretrace_test_exe = executable('frameretrace_test',
                                      dep_md5,
                                      libx11,
 				                     dep_khr,
-				     protobuf_dep,
+				                     protobuf_dep,
                                    ],
                                    cpp_args : '-DCMAKE_CURRENT_SOURCE_DIR="' + meson.current_source_dir() + '"'
                                   )
