@@ -84,9 +84,6 @@ protobuf_dep = dependency('protobuf', required : true,
 			  fallback : ['protobuf', 'protobuf_dep'])
 protoc = subproject('protobuf').get_variable('protoc')
 
-proj_apitrace = subproject('apitrace')
-
-
 if cpp.get_argument_syntax() == 'msvc'
   proj_getopt = subproject('getopt')
   idep_getopt = proj_getopt.get_variable('idep_getopt')
@@ -96,6 +93,7 @@ else
   dep_mhook = dependency('', required : false)
 endif
 
+proj_apitrace = subproject('apitrace')
 dep_apitrace = proj_apitrace.get_variable('dep_apitrace')
 
 gtest_dep = dependency('gtest', fallback : ['gtest', 'gtest_dep'])
