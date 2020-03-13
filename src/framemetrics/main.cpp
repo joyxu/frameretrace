@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
     return -1;
   }
   if (metrics_group.length() == 0) {
-    printf("ERROR: loop count not specified.\n");
+    printf("ERROR: metrics group not specified.\n");
     printf("%s", usage);
     return -1;
   }
