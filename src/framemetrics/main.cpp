@@ -36,9 +36,11 @@
 #include "glframe_logger.hpp"
 
 using glretrace::FrameRunner;
+using glretrace::PerfMetricDescriptor;
 
 int main(int argc, char *argv[]) {
-  std::string metrics_group = "none";
+  PerfMetricDescriptor metrics_desc("none");
+  std::vector<std::string> metrics_names;
   std::string frame_file, out_file;
   std::vector<int> frames;
   const char *usage = "USAGE: framemetrics [-a|-d] [-i {interval}] -g {metrics_group} [-o {out_file}]"
@@ -71,7 +73,7 @@ int main(int argc, char *argv[]) {
         event_interval = atoi(optarg);
         continue;
       case 'g':
-        metrics_group = optarg;
+        metrics_desc = PerfMetricDescriptor(optarg);
         continue;
       case 'f':
         frame_file = optarg;
@@ -97,7 +99,7 @@ int main(int argc, char *argv[]) {
     printf("%s", usage);
     return -1;
   }
-  if (metrics_group.length() == 0) {
+  if (metrics_desc.m_metrics_group.length() == 0) {
     printf("ERROR: metrics group not specified.\n");
     printf("%s", usage);
     return -1;
@@ -112,7 +114,7 @@ int main(int argc, char *argv[]) {
   glretrace::Logger::Create();
   glretrace::Logger::Begin();
 
-  FrameRunner runner(frame_file, out_file, metrics_group, frames.back(), interval, event_interval);
+  FrameRunner runner(frame_file, out_file, metrics_desc, frames.back(), interval, event_interval);
 
   runner.advanceToFrame(frames[0]);
   runner.init();

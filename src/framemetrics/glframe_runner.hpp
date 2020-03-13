@@ -47,6 +47,23 @@ namespace glretrace {
 
 class Context;
 
+/* Describes a requested PerfMetricGroup, with an optional list of
+ * requested metrics within the group.  If no individual metrics
+ * are requested, all metrics within the group will be used.  This
+ * is not necessarily supported on all hw, in partcular with
+ * GL_AMD_performance_monitor.
+ */
+class PerfMetricDescriptor {
+public:
+  std::string m_metrics_group;
+  std::vector<std::string> m_metrics_names;
+
+  /* Takes a PerfMetricGroup descriptor string, which can either
+   * be just a group name, or "group:counter1,counter2,counter3"
+   */
+  PerfMetricDescriptor(const char *desc);
+};
+
 class FrameRunner {
  public:
   enum MetricInterval {
@@ -57,7 +74,7 @@ class FrameRunner {
 
   FrameRunner(const std::string filepath,
               const std::string out_path,
-              std::string metrics_group,
+              PerfMetricDescriptor metrics_desc,
               int max_frame,
               MetricInterval interval = kPerFrame,
               int event_interval = 1);
@@ -72,7 +89,7 @@ class FrameRunner {
   int m_current_frame, m_current_event, m_group_id;
   const MetricInterval m_interval;
   const int m_event_interval;
-  std::string m_metrics_group;
+  PerfMetricDescriptor m_metrics_desc;
   PerfMetricGroup *m_current_group;
   std::map<Context *, PerfMetricGroup *> m_context_metrics;
   std::map<Context *, trace::Call*> m_context_calls;

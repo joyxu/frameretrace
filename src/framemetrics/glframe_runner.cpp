@@ -43,6 +43,7 @@
 #include "glframe_logger.hpp"
 #include "glframe_os.hpp"
 
+using glretrace::PerfMetricDescriptor;
 using glretrace::FrameRunner;
 using glretrace::NoCopy;
 using glretrace::NoAssign;
@@ -56,7 +57,7 @@ extern retrace::Retracer retracer;
 
 FrameRunner::FrameRunner(const std::string filepath,
                          const std::string out_path,
-                         std::string metrics_group,
+                         PerfMetricDescriptor metrics_desc,
                          int max_frame,
                          MetricInterval interval,
                          int event_interval)
@@ -66,7 +67,7 @@ FrameRunner::FrameRunner(const std::string filepath,
       m_group_id(-1),
       m_interval(interval),
       m_event_interval(event_interval),
-      m_metrics_group(metrics_group),
+      m_metrics_desc(metrics_desc),
       m_current_group(NULL),
       m_parser(max_frame) {
   if (out_path.size()) {
@@ -85,6 +86,46 @@ FrameRunner::FrameRunner(const std::string filepath,
   retrace::setUp();
   parser = &m_parser;
   parser->open(filepath.c_str());
+}
+
+/* return the string starting with *arg until the specified deliminator
+ * (replacing the deliminator with NULL terminator) and advancing *arg
+ * to point to the start of the remainder
+ */
+static char *
+pop_str(char **arg, char delim)
+{
+  if (!*arg)
+    return NULL;
+
+  char *result = *arg;
+  char *s = strchr(*arg, delim);
+  if (!s) {
+    /* reached the end: */
+    *arg = NULL;
+  } else {
+    s[0] = '\0';
+    /* advance to next token: */
+    *arg = &s[1];
+  }
+
+  return result;
+}
+
+PerfMetricDescriptor::PerfMetricDescriptor(const char *desc)
+{
+  if (strstr(desc, ":")) {
+    /* parse group name + counter names in the form:
+     * group:counter1,counter2,...
+     */
+    char *arg = strdup(desc);
+    m_metrics_group = pop_str(&arg, ':');
+    char *metric;
+    while ((metric = pop_str(&arg, ',')))
+      m_metrics_names.push_back(metric);
+  } else {
+    m_metrics_group = desc;
+  }
 }
 
 class IntelPerfMetric : public NoCopy, NoAssign {
@@ -181,6 +222,7 @@ class PerfMetricGroup {
  public:
   virtual ~PerfMetricGroup() {}
   virtual const std::string &name() const = 0;
+  virtual void set_metric_names(std::vector<std::string> names) = 0;
   virtual void get_metric_names(std::vector<std::string> *out_names) = 0;
   virtual void begin(int current_frame, int event_number) = 0;
   virtual void end(const std::string &event_type) = 0;
@@ -192,6 +234,7 @@ class IntelPerfMetricGroup : public PerfMetricGroup, NoCopy, NoAssign {
   explicit IntelPerfMetricGroup(int query_id);
   ~IntelPerfMetricGroup();
   const std::string &name() const { return m_query_name; }
+  void set_metric_names(std::vector<std::string> names);
   void get_metric_names(std::vector<std::string> *out_names);
   void begin(int current_frame, int event_number);
   void end(const std::string &event_type);
@@ -231,6 +274,14 @@ IntelPerfMetricGroup::IntelPerfMetricGroup(int query_id)
        ++counter_num) {
     m_metrics.push_back(new IntelPerfMetric(m_query_id, counter_num));
   }
+}
+
+void
+IntelPerfMetricGroup::set_metric_names(std::vector<std::string> names)
+{
+  GRLOG(glretrace::ERR, "unsupported");
+  assert(false);
+  exit(-1);
 }
 
 void
@@ -398,6 +449,7 @@ class AMDPerfMetricGroup : public PerfMetricGroup, NoCopy, NoAssign {
   explicit AMDPerfMetricGroup(int group_id);
   ~AMDPerfMetricGroup();
   const std::string &name() const { return m_group_name; }
+  void set_metric_names(std::vector<std::string> names);
   void get_metric_names(std::vector<std::string> *out_names);
   void begin(int current_frame, int event_number);
   void end(const std::string &event_type);
@@ -463,6 +515,25 @@ AMDPerfMetricGroup::~AMDPerfMetricGroup() {
   for (auto i : m_metrics)
     delete i.second;
   m_metrics.clear();
+}
+
+void
+AMDPerfMetricGroup::set_metric_names(std::vector<std::string> names)
+{
+  assert(names.size() > 0);
+
+  std::map<int, AMDPerfMetric *> filtered_metrics;
+
+  for (auto i : m_metrics) {
+    if (std::find(names.begin(), names.end(), i.second->name()) != names.end()) {
+      filtered_metrics[i.first] = i.second;
+    } else {
+      delete i.second;
+    }
+  }
+
+  m_metrics.clear();
+  m_metrics = filtered_metrics;
 }
 
 void
@@ -626,13 +697,13 @@ FrameRunner::init() {
 
   for (auto group : ids) {
     m_current_group = create_metric_group(group);
-    if (m_current_group->name() == m_metrics_group) {
+    if (m_current_group->name() == m_metrics_desc.m_metrics_group) {
       m_group_id = group;
       break;
     }
 
     // else
-    if (m_metrics_group == "none")
+    if (m_metrics_desc.m_metrics_group == "none")
       std::cout << m_current_group->name() << std::endl;
 
     delete m_current_group;
@@ -641,6 +712,10 @@ FrameRunner::init() {
 
   if (m_current_group == NULL) {
     exit(-1);
+  }
+
+  if (m_metrics_desc.m_metrics_names.size() > 0) {
+    m_current_group->set_metric_names(m_metrics_desc.m_metrics_names);
   }
 
   // get current context
