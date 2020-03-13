@@ -662,7 +662,10 @@ void
 FrameRunner::advanceToFrame(int f) {
   trace::Call *call;
   while ((call = parser->parse_call()) && m_current_frame < f) {
+    assert(!GlFunctions::GetError());
     retracer.retrace(*call);
+    /* drain any errors from trace: */
+    while (GlFunctions::GetError()) {}
     bool save_call = false;
     const bool frame_boundary = call->flags & trace::CALL_FLAG_END_FRAME;
     if (ThreadContext::changesContext(*call)) {
@@ -707,7 +710,11 @@ FrameRunner::run(int end_frame) {
         }
       }
 
+    assert(!GlFunctions::GetError());
     retracer.retrace(*call);
+    /* drain any errors from trace: */
+    while (GlFunctions::GetError()) {}
+
     if (RetraceRender::isRender(*call) && m_interval == kPerRender) {
       ++m_current_event;
       if (m_current_event % m_event_interval == 0) {
