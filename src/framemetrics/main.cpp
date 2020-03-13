@@ -117,6 +117,11 @@ int main(int argc, char *argv[]) {
 
   FrameRunner runner(frame_file, out_file, metrics_desc, frames.back(), interval, event_interval);
 
+  if (metrics_desc.m_metrics_group == "none") {
+    runner.dumpGroupsAndCounters();
+    return 0;
+  }
+
   runner.advanceToFrame(frames[0]);
   runner.init();
   long long startTime = os::getTime();

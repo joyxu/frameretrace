@@ -700,6 +700,43 @@ static PerfMetricGroup *create_metric_group(int group_id) {
 }
 
 void
+FrameRunner::dumpGroupsAndCounters() {
+  /* advance until we have a context: */
+  trace::Call *call;
+  while ((call = parser->parse_call())) {
+    retracer.retrace(*call);
+    std::string extensions;
+    GlFunctions::GetGlExtensions(&extensions);
+    if (extensions.size() > 0)
+      break;
+  }
+
+  /* drain any errors from trace: */
+  while (GlFunctions::GetError()) {}
+
+  std::vector<unsigned int> ids;
+  get_group_ids(&ids);
+
+  for (auto group : ids) {
+    m_current_group = create_metric_group(group);
+
+    std::cout << m_current_group->name() << ":";
+
+    std::vector<std::string> names;
+    m_current_group->get_metric_names(&names);
+
+    for (auto metric : names) {
+      std::cout << " " << metric;
+    }
+
+    std::cout << std::endl;
+
+    delete m_current_group;
+    m_current_group = NULL;
+  }
+}
+
+void
 FrameRunner::init() {
   std::vector<unsigned int> ids;
   get_group_ids(&ids);
@@ -711,15 +748,12 @@ FrameRunner::init() {
       break;
     }
 
-    // else
-    if (m_metrics_desc.m_metrics_group == "none")
-      std::cout << m_current_group->name() << std::endl;
-
     delete m_current_group;
     m_current_group = NULL;
   }
 
   if (m_current_group == NULL) {
+    std::cout << "Group " << m_metrics_desc.m_metrics_group << " not found!" << std::endl;
     exit(-1);
   }
 

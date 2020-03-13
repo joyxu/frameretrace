@@ -80,6 +80,7 @@ class FrameRunner {
               int event_interval = 1);
   ~FrameRunner();
   void advanceToFrame(int f);
+  void dumpGroupsAndCounters();
   void init();
   void run(int end_frame);
 
