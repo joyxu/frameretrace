@@ -67,6 +67,7 @@ FrameRunner::FrameRunner(const std::string filepath,
       m_interval(interval),
       m_event_interval(event_interval),
       m_metrics_group(metrics_group),
+      m_current_group(NULL),
       m_parser(max_frame) {
   if (out_path.size()) {
     m_of.open(out_path);
@@ -340,7 +341,7 @@ class AMDPerfMetric : public NoCopy, NoAssign {
 };
 
 AMDPerfMetric::AMDPerfMetric(int group_id, int counter_num)
-    : m_group_id(group_id), m_counter_num(counter_num), m_parsed(false) {
+    : m_group_id(group_id), m_counter_num(counter_num), m_current_val(0), m_parsed(false) {
   GLsizei length;
   GlFunctions::GetPerfMonitorCounterStringAMD(
       m_group_id, m_counter_num, 0, &length, NULL);
