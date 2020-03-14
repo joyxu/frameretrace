@@ -73,8 +73,8 @@ class FrameRunner {
   const MetricInterval m_interval;
   const int m_event_interval;
   metrics::PerfMetricDescriptor m_metrics_desc;
-  metrics::PerfMetricGroup *m_current_group;
-  std::map<Context *, metrics::PerfMetricGroup *> m_context_metrics;
+  metrics::PerfMetrics *m_current_metrics;
+  std::map<Context *, metrics::PerfMetrics *> m_context_metrics;
   std::map<Context *, trace::Call*> m_context_calls;
   std::map<unsigned long long, Context *> m_retraced_contexts;
   ThreadedParser m_parser;

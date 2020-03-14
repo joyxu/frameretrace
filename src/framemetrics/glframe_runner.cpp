@@ -45,6 +45,7 @@
 
 using metrics::PerfMetricDescriptor;
 using metrics::PerfMetricGroup;
+using metrics::PerfMetrics;
 using glretrace::FrameRunner;
 using glretrace::GlFunctions;
 using glretrace::ERR;
@@ -66,7 +67,7 @@ FrameRunner::FrameRunner(const std::string filepath,
       m_interval(interval),
       m_event_interval(event_interval),
       m_metrics_desc(metrics_desc),
-      m_current_group(NULL),
+      m_current_metrics(NULL),
       m_parser(max_frame) {
   if (out_path.size()) {
     m_of.open(out_path);
@@ -101,7 +102,7 @@ MetricsType get_metrics_type() {
   assert(false);
 }
 
-static PerfMetricGroup *create_metric_group(metrics::PerfMetricDescriptor metrics_desc) {
+static PerfMetrics *create_metric_group(metrics::PerfMetricDescriptor metrics_desc) {
   switch (get_metrics_type()) {
     case AMD_METRICS:
       return create_amd_metrics(metrics_desc);
@@ -142,25 +143,31 @@ FrameRunner::dumpGroupsAndCounters() {
 
 void
 FrameRunner::init() {
-  m_current_group = create_metric_group(m_metrics_desc);
+  m_current_metrics = create_metric_group(m_metrics_desc);
 
-  if (m_current_group == NULL) {
+  if (m_current_metrics == NULL) {
     std::cout << "Group " << m_metrics_desc.m_metrics_group << " not found!" << std::endl;
     exit(-1);
   }
 
   // get current context
   Context *c = getCurrentContext();
-  m_context_metrics[c] = m_current_group;
+  m_context_metrics[c] = m_current_metrics;
 
-  std::vector<std::string> names;
-  m_current_group->get_metric_names(&names);
+  std::vector<PerfMetricGroup *> groups;
+  m_current_metrics->get_metric_groups(&groups);
 
   // write a header
   *m_out << "frame\tevent_number\tevent_type";
+
   // add each metric column to the header
-  for (auto metric : names) {
-    *m_out << "\t" << metric;
+  for (auto group : groups) {
+    std::vector<std::string> names;
+    group->get_metric_names(&names);
+
+    for (auto metric : names) {
+      *m_out << "\t" << metric;
+    }
   }
   *m_out << std::endl;
 }
@@ -199,7 +206,7 @@ FrameRunner::run(int end_frame) {
   // retrace count frames and output frame time
   GlFunctions::Finish();
 
-  m_current_group->begin(m_current_frame, ++m_current_event);
+  m_current_metrics->begin(m_current_frame, ++m_current_event);
   while (Call *call = parser->parse_call()) {
     bool save_call = false;
 
@@ -213,7 +220,7 @@ FrameRunner::run(int end_frame) {
           continue;
         } else {
           // call actually changes context
-          m_current_group->end(call->name());
+          m_current_metrics->end(call->name());
         }
       }
 
@@ -226,8 +233,8 @@ FrameRunner::run(int end_frame) {
       ++m_current_event;
       if (m_current_event % m_event_interval == 0) {
         // stop/start metrics to measure the render
-        m_current_group->end(call->name());
-        m_current_group->begin(m_current_frame, m_current_event);
+        m_current_metrics->end(call->name());
+        m_current_metrics->begin(m_current_frame, m_current_event);
       }
     }
 
@@ -241,8 +248,8 @@ FrameRunner::run(int end_frame) {
       if (m_context_metrics.find(c) == m_context_metrics.end())
         m_context_metrics[c] = create_metric_group(m_metrics_desc);
 
-      m_current_group = m_context_metrics[c];
-      m_current_group->begin(m_current_frame, ++m_current_event);
+      m_current_metrics = m_context_metrics[c];
+      m_current_metrics->begin(m_current_frame, ++m_current_event);
     }
 
     const bool frame_boundary = call->flags & trace::CALL_FLAG_END_FRAME;
@@ -257,15 +264,15 @@ FrameRunner::run(int end_frame) {
 
           if ((m_interval == kPerRender) ||
               (m_interval == kPerFrame && m_current_frame % m_event_interval == 0)) {
-            m_current_group->end(call->name());
-            m_current_group->publish(m_out, false);
-            m_current_group->begin(m_current_frame, m_current_event);
+            m_current_metrics->end(call->name());
+            m_current_metrics->publish(m_out, false);
+            m_current_metrics->begin(m_current_frame, m_current_event);
           }
         }
         if (m_context_metrics.size() > 1) {
           glretrace::Context *original_context = NULL;
           for (auto g : m_context_metrics) {
-            if (g.second == m_current_group) {
+            if (g.second == m_current_metrics) {
               original_context = g.first;
               continue;
             }

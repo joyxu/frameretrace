@@ -53,6 +53,7 @@ using glretrace::NoAssign;
 using glretrace::GlFunctions;
 using metrics::PerfValue;
 using metrics::PerfMetricGroup;
+using metrics::PerfMetrics;
 
 
 static void
@@ -143,11 +144,12 @@ AMDPerfMetric::publish(std::ostream *outf) {
   *outf << "\t" << m_current_val;
 }
 
-class AMDPerfMetricGroup : public PerfMetricGroup, NoCopy, NoAssign {
+class AMDPerfMetricGroup : public PerfMetrics, PerfMetricGroup, NoCopy, NoAssign {
  public:
   explicit AMDPerfMetricGroup(int group_id);
   ~AMDPerfMetricGroup();
   const std::string &name() const { return m_group_name; }
+  void get_metric_groups(std::vector<PerfMetricGroup *> *out_groups);
   void set_metric_names(std::vector<std::string> names);
   void get_metric_names(std::vector<std::string> *out_names);
   void begin(int current_frame, int event_number);
@@ -213,6 +215,11 @@ AMDPerfMetricGroup::~AMDPerfMetricGroup() {
   for (auto i : m_metrics)
     delete i.second;
   m_metrics.clear();
+}
+
+void
+AMDPerfMetricGroup::get_metric_groups(std::vector<PerfMetricGroup *> *out_groups) {
+  out_groups->push_back(this);
 }
 
 void
@@ -332,7 +339,7 @@ AMDPerfMetricGroup::publish(std::ostream *outf, bool wait) {
   }
 }
 
-PerfMetricGroup *
+PerfMetrics *
 create_amd_metrics(metrics::PerfMetricDescriptor metrics_desc) {
   std::vector<unsigned int> ids;
   get_group_ids(&ids);
@@ -361,7 +368,7 @@ dump_amd_metrics(void) {
   get_group_ids(&ids);
 
   for (auto group_id : ids) {
-    PerfMetricGroup *group = new AMDPerfMetricGroup(group_id);
+    AMDPerfMetricGroup *group = new AMDPerfMetricGroup(group_id);
 
     std::cout << group->name() << ":";
 

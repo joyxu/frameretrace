@@ -45,6 +45,7 @@ using glretrace::NoAssign;
 using glretrace::GlFunctions;
 using metrics::PerfValue;
 using metrics::PerfMetricGroup;
+using metrics::PerfMetrics;
 
 class IntelPerfMetric : public NoCopy, NoAssign {
  public:
@@ -124,11 +125,12 @@ IntelPerfMetric::publish(const std::vector<unsigned char> &data,
   *outf << "\t" << fval;
 }
 
-class IntelPerfMetricGroup : public PerfMetricGroup, NoCopy, NoAssign {
+class IntelPerfMetricGroup : public PerfMetrics, PerfMetricGroup, NoCopy, NoAssign {
  public:
   explicit IntelPerfMetricGroup(int query_id);
   ~IntelPerfMetricGroup();
   const std::string &name() const { return m_query_name; }
+  void get_metric_groups(std::vector<PerfMetricGroup *> *out_groups);
   void get_metric_names(std::vector<std::string> *out_names);
   void begin(int current_frame, int event_number);
   void end(const std::string &event_type);
@@ -168,6 +170,11 @@ IntelPerfMetricGroup::IntelPerfMetricGroup(int query_id)
        ++counter_num) {
     m_metrics.push_back(new IntelPerfMetric(m_query_id, counter_num));
   }
+}
+
+void
+IntelPerfMetricGroup::get_metric_groups(std::vector<PerfMetricGroup *> *out_groups) {
+  out_groups->push_back(this);
 }
 
 void
@@ -280,7 +287,7 @@ get_query_ids(std::vector<unsigned int> *ids) {
   return;
 }
 
-PerfMetricGroup *
+PerfMetrics *
 create_intel_metrics(metrics::PerfMetricDescriptor metrics_desc) {
   std::vector<unsigned int> ids;
   get_query_ids(&ids);
@@ -292,7 +299,7 @@ create_intel_metrics(metrics::PerfMetricDescriptor metrics_desc) {
   }
 
   for (auto query_id : ids) {
-    PerfMetricGroup *group = new IntelPerfMetricGroup(query_id);
+    IntelPerfMetricGroup *group = new IntelPerfMetricGroup(query_id);
     if (group->name() == metrics_desc.m_metrics_group)
       return group;
 
@@ -308,7 +315,7 @@ dump_intel_metrics(void) {
   get_query_ids(&ids);
 
   for (auto query_id : ids) {
-    PerfMetricGroup *group = new IntelPerfMetricGroup(query_id);
+    IntelPerfMetricGroup *group = new IntelPerfMetricGroup(query_id);
 
     std::cout << group->name() << ":";
 

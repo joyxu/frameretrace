@@ -73,6 +73,15 @@ class PerfMetricGroup {
   virtual ~PerfMetricGroup() {}
   virtual const std::string &name() const = 0;
   virtual void get_metric_names(std::vector<std::string> *out_names) = 0;
+};
+
+/**
+ * Encapsulates one or more PerfMetricGroups
+ */
+class PerfMetrics {
+ public:
+  virtual ~PerfMetrics() {}
+  virtual void get_metric_groups(std::vector<PerfMetricGroup *> *out_groups) = 0;
   virtual void begin(int current_frame, int event_number) = 0;
   virtual void end(const std::string &event_type) = 0;
   virtual void publish(std::ostream *outf, bool wait) = 0;
@@ -80,10 +89,10 @@ class PerfMetricGroup {
 
 }  // namespace metrics
 
-metrics::PerfMetricGroup *create_intel_metrics(metrics::PerfMetricDescriptor metrics_desc);
+metrics::PerfMetrics *create_intel_metrics(metrics::PerfMetricDescriptor metrics_desc);
 void dump_intel_metrics(void);
 
-metrics::PerfMetricGroup *create_amd_metrics(metrics::PerfMetricDescriptor metrics_desc);
+metrics::PerfMetrics *create_amd_metrics(metrics::PerfMetricDescriptor metrics_desc);
 void dump_amd_metrics(void);
 
 #endif
