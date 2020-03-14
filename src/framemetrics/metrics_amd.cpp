@@ -55,7 +55,6 @@ using metrics::PerfValue;
 using metrics::PerfMetricGroup;
 using metrics::PerfMetrics;
 
-
 static void
 get_group_ids(std::vector<unsigned int> *ids) {
   int num_groups;
@@ -67,6 +66,54 @@ get_group_ids(std::vector<unsigned int> *ids) {
       ids->data());
   assert(!GlFunctions::GetError());
   return;
+}
+
+static std::string
+get_group_name(int group_id) {
+  GLint max_name_len = 0;
+  assert(!GlFunctions::GetError());
+  GlFunctions::GetPerfMonitorGroupStringAMD(group_id, 0,
+                                            &max_name_len, NULL);
+  assert(!GlFunctions::GetError());
+  std::vector<GLchar> group_name(max_name_len + 1);
+  GLsizei name_len;
+  GlFunctions::GetPerfMonitorGroupStringAMD(group_id, max_name_len + 1,
+                                            &name_len, group_name.data());
+  return group_name.data();
+}
+
+static std::vector<unsigned int>
+get_group_counters(int group_id) {
+  int num_counters;
+  int max_active_counters;
+
+  GlFunctions::GetPerfMonitorCountersAMD(group_id,
+                                         &num_counters,
+                                         &max_active_counters,
+                                         0, NULL);
+  assert(!GlFunctions::GetError());
+  std::vector<unsigned int> counters(num_counters);
+  GlFunctions::GetPerfMonitorCountersAMD(group_id,
+                                         &num_counters,
+                                         &max_active_counters,
+                                         num_counters, counters.data());
+  assert(!GlFunctions::GetError());
+
+  return counters;
+}
+
+static std::string
+get_counter_name(int group_id, int counter_id) {
+  GLsizei length;
+  GlFunctions::GetPerfMonitorCounterStringAMD(
+      group_id, counter_id, 0, &length, NULL);
+  assert(!GlFunctions::GetError());
+  std::vector<char> name(length + 1);
+  GlFunctions::GetPerfMonitorCounterStringAMD(
+    group_id, counter_id, length + 1, &length,
+    name.data());
+  assert(!GlFunctions::GetError());
+  return name.data();
 }
 
 
@@ -91,18 +138,10 @@ class AMDPerfMetric : public NoCopy, NoAssign {
   } m_counter_type;
 };
 
+
 AMDPerfMetric::AMDPerfMetric(int group_id, int counter_num)
     : m_group_id(group_id), m_counter_num(counter_num), m_current_val(0), m_parsed(false) {
-  GLsizei length;
-  GlFunctions::GetPerfMonitorCounterStringAMD(
-      m_group_id, m_counter_num, 0, &length, NULL);
-  assert(!GlFunctions::GetError());
-  std::vector<char> name(length + 1);
-  GlFunctions::GetPerfMonitorCounterStringAMD(
-    m_group_id, m_counter_num, length + 1, &length,
-    name.data());
-  assert(!GlFunctions::GetError());
-  m_name = name.data();
+  m_name = get_counter_name(group_id, counter_num);
 
   GLuint counter_type;
   GlFunctions::GetPerfMonitorCounterInfoAMD(
@@ -172,31 +211,10 @@ class AMDPerfMetricGroup : public PerfMetrics, PerfMetricGroup, NoCopy, NoAssign
 
 AMDPerfMetricGroup::AMDPerfMetricGroup(int group_id)
     : m_group_id(group_id) {
-  GLint max_name_len = 0;
-  assert(!GlFunctions::GetError());
-  GlFunctions::GetPerfMonitorGroupStringAMD(m_group_id, 0,
-                                            &max_name_len, NULL);
-  assert(!GlFunctions::GetError());
-  std::vector<GLchar> group_name(max_name_len + 1);
-  GLsizei name_len;
-  GlFunctions::GetPerfMonitorGroupStringAMD(m_group_id, max_name_len + 1,
-                                            &name_len, group_name.data());
-  m_group_name = group_name.data();
+  m_group_name = get_group_name(group_id);
 
-  int num_counters;
-  int max_active_counters;
-  GlFunctions::GetPerfMonitorCountersAMD(m_group_id,
-                                         &num_counters,
-                                         &max_active_counters,
-                                         0, NULL);
-  assert(!GlFunctions::GetError());
-  std::vector<unsigned int> counters(num_counters);
-  GlFunctions::GetPerfMonitorCountersAMD(m_group_id,
-                                         &num_counters,
-                                         &max_active_counters,
-                                         num_counters, counters.data());
-  assert(!GlFunctions::GetError());
-  // assert(max_active_counters == num_counters);
+  std::vector<unsigned int> counters = get_group_counters(group_id);
+
   for (auto counter : counters) {
     AMDPerfMetric *p = new AMDPerfMetric(m_group_id, counter);
     m_metrics[counter] = p;
