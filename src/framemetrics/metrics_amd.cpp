@@ -358,7 +358,15 @@ AMDPerfMetricGroup::publish(std::ostream *outf, bool wait) {
 }
 
 PerfMetrics *
-create_amd_metrics(metrics::PerfMetricDescriptor metrics_desc) {
+create_amd_metrics(std::vector<metrics::PerfMetricDescriptor> metrics_descs) {
+  if (metrics_descs.size() != 1) {
+    std::cout << "More than one metrics group is not supported "
+        "by amd metrics!" << std::endl;
+    return NULL;
+  }
+
+  metrics::PerfMetricDescriptor metrics_desc = metrics_descs.front();
+
   std::vector<unsigned int> ids;
   get_group_ids(&ids);
 

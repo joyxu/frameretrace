@@ -288,7 +288,15 @@ get_query_ids(std::vector<unsigned int> *ids) {
 }
 
 PerfMetrics *
-create_intel_metrics(metrics::PerfMetricDescriptor metrics_desc) {
+create_intel_metrics(std::vector<metrics::PerfMetricDescriptor> metrics_descs) {
+  if (metrics_descs.size() != 1) {
+    std::cout << "More than one metrics group is not supported "
+        "by intel metrics!" << std::endl;
+    return NULL;
+  }
+
+  metrics::PerfMetricDescriptor metrics_desc = metrics_descs.front();
+
   std::vector<unsigned int> ids;
   get_query_ids(&ids);
 

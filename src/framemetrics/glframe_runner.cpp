@@ -57,7 +57,7 @@ extern retrace::Retracer retracer;
 
 FrameRunner::FrameRunner(const std::string filepath,
                          const std::string out_path,
-                         PerfMetricDescriptor metrics_desc,
+                         std::vector<metrics::PerfMetricDescriptor> metrics_descs,
                          int max_frame,
                          MetricInterval interval,
                          int event_interval)
@@ -66,7 +66,7 @@ FrameRunner::FrameRunner(const std::string filepath,
       m_current_event(0),
       m_interval(interval),
       m_event_interval(event_interval),
-      m_metrics_desc(metrics_desc),
+      m_metrics_descs(metrics_descs),
       m_current_metrics(NULL),
       m_parser(max_frame) {
   if (out_path.size()) {
@@ -102,12 +102,13 @@ MetricsType get_metrics_type() {
   assert(false);
 }
 
-static PerfMetrics *create_metric_group(metrics::PerfMetricDescriptor metrics_desc) {
+static PerfMetrics *
+create_metric_group(std::vector<metrics::PerfMetricDescriptor> metrics_descs) {
   switch (get_metrics_type()) {
     case AMD_METRICS:
-      return create_amd_metrics(metrics_desc);
+      return create_amd_metrics(metrics_descs);
     case INTEL_METRICS:
-      return create_intel_metrics(metrics_desc);
+      return create_intel_metrics(metrics_descs);
     default:
       assert(false);
       return NULL;
@@ -143,10 +144,9 @@ FrameRunner::dumpGroupsAndCounters() {
 
 void
 FrameRunner::init() {
-  m_current_metrics = create_metric_group(m_metrics_desc);
+  m_current_metrics = create_metric_group(m_metrics_descs);
 
   if (m_current_metrics == NULL) {
-    std::cout << "Group " << m_metrics_desc.m_metrics_group << " not found!" << std::endl;
     exit(-1);
   }
 
@@ -246,7 +246,7 @@ FrameRunner::run(int end_frame) {
       }
 
       if (m_context_metrics.find(c) == m_context_metrics.end())
-        m_context_metrics[c] = create_metric_group(m_metrics_desc);
+        m_context_metrics[c] = create_metric_group(m_metrics_descs);
 
       m_current_metrics = m_context_metrics[c];
       m_current_metrics->begin(m_current_frame, ++m_current_event);

@@ -89,10 +89,10 @@ class PerfMetrics {
 
 }  // namespace metrics
 
-metrics::PerfMetrics *create_intel_metrics(metrics::PerfMetricDescriptor metrics_desc);
+metrics::PerfMetrics *create_intel_metrics(std::vector<metrics::PerfMetricDescriptor> metrics_descs);
 void dump_intel_metrics(void);
 
-metrics::PerfMetrics *create_amd_metrics(metrics::PerfMetricDescriptor metrics_desc);
+metrics::PerfMetrics *create_amd_metrics(std::vector<metrics::PerfMetricDescriptor> metrics_descs);
 void dump_amd_metrics(void);
 
 #endif

@@ -56,7 +56,7 @@ class FrameRunner {
 
   FrameRunner(const std::string filepath,
               const std::string out_path,
-              metrics::PerfMetricDescriptor metrics_desc,
+              std::vector<metrics::PerfMetricDescriptor> metrics_descs,
               int max_frame,
               MetricInterval interval = kPerFrame,
               int event_interval = 1);
@@ -72,7 +72,7 @@ class FrameRunner {
   int m_current_frame, m_current_event;
   const MetricInterval m_interval;
   const int m_event_interval;
-  metrics::PerfMetricDescriptor m_metrics_desc;
+  std::vector<metrics::PerfMetricDescriptor> m_metrics_descs;
   metrics::PerfMetrics *m_current_metrics;
   std::map<Context *, metrics::PerfMetrics *> m_context_metrics;
   std::map<Context *, trace::Call*> m_context_calls;
