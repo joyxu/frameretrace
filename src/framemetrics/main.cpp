@@ -34,9 +34,10 @@
 #include "glframe_glhelper.hpp"
 #include "glframe_runner.hpp"
 #include "glframe_logger.hpp"
+#include "metrics.hpp"
 
 using glretrace::FrameRunner;
-using glretrace::PerfMetricDescriptor;
+using metrics::PerfMetricDescriptor;
 
 int main(int argc, char *argv[]) {
   PerfMetricDescriptor metrics_desc("none");

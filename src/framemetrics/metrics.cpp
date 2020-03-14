@@ -25,62 +25,58 @@
  *   Mark Janes <mark.a.janes@intel.com>
  **************************************************************************/
 
-#ifndef _GLFRAME_RUNNER_HPP_
-#define _GLFRAME_RUNNER_HPP_
+#include "glframe_runner.hpp"
+
+#include <GL/gl.h>
 
 #include <map>
+#include <queue>
+#include <sstream>
 #include <string>
 #include <vector>
 
-#include <fstream> // NOLINT
-
-#include "glframe_thread_context.hpp"
-#include "glframe_threadedparser.hpp"
 #include "metrics.hpp"
 
-namespace trace {
-class Call;
+using metrics::PerfMetricDescriptor;
+
+
+/* return the string starting with *arg until the specified deliminator
+ * (replacing the deliminator with NULL terminator) and advancing *arg
+ * to point to the start of the remainder
+ */
+static char *
+pop_str(char **arg, char delim)
+{
+  if (!*arg)
+    return NULL;
+
+  char *result = *arg;
+  char *s = strchr(*arg, delim);
+  if (!s) {
+    /* reached the end: */
+    *arg = NULL;
+  } else {
+    s[0] = '\0';
+    /* advance to next token: */
+    *arg = &s[1];
+  }
+
+  return result;
 }
 
-namespace glretrace {
-
-class Context;
-
-class FrameRunner {
- public:
-  enum MetricInterval {
-    kPerRender,
-    kPerFrame,
-    kPerTrace
-  };
-
-  FrameRunner(const std::string filepath,
-              const std::string out_path,
-              metrics::PerfMetricDescriptor metrics_desc,
-              int max_frame,
-              MetricInterval interval = kPerFrame,
-              int event_interval = 1);
-  ~FrameRunner();
-  void advanceToFrame(int f);
-  void dumpGroupsAndCounters();
-  void init();
-  void run(int end_frame);
-
- private:
-  std::ofstream m_of;
-  std::ostream *m_out;
-  int m_current_frame, m_current_event;
-  const MetricInterval m_interval;
-  const int m_event_interval;
-  metrics::PerfMetricDescriptor m_metrics_desc;
-  metrics::PerfMetricGroup *m_current_group;
-  std::map<Context *, metrics::PerfMetricGroup *> m_context_metrics;
-  std::map<Context *, trace::Call*> m_context_calls;
-  std::map<unsigned long long, Context *> m_retraced_contexts;
-  ThreadedParser m_parser;
-};
-
-}  // namespace glretrace
-
-#endif
+PerfMetricDescriptor::PerfMetricDescriptor(const char *desc)
+{
+  if (strstr(desc, ":")) {
+    /* parse group name + counter names in the form:
+     * group:counter1,counter2,...
+     */
+    char *arg = strdup(desc);
+    m_metrics_group = pop_str(&arg, ':');
+    char *metric;
+    while ((metric = pop_str(&arg, ',')))
+      m_metrics_names.push_back(metric);
+  } else {
+    m_metrics_group = desc;
+  }
+}
 
