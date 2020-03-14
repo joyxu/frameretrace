@@ -382,23 +382,18 @@ create_amd_metrics(metrics::PerfMetricDescriptor metrics_desc) {
 
 void
 dump_amd_metrics(void) {
-  std::vector<unsigned int> ids;
-  get_group_ids(&ids);
+  std::vector<unsigned int> group_ids;
+  get_group_ids(&group_ids);
 
-  for (auto group_id : ids) {
-    AMDPerfMetricGroup *group = new AMDPerfMetricGroup(group_id);
+  for (auto group_id : group_ids) {
+    std::cout << get_group_name(group_id) << ":";
 
-    std::cout << group->name() << ":";
+    std::vector<unsigned int> counter_ids = get_group_counters(group_id);
 
-    std::vector<std::string> names;
-    group->get_metric_names(&names);
-
-    for (auto metric : names) {
-      std::cout << " " << metric;
+    for (auto counter_id : counter_ids) {
+      std::cout << " " << get_counter_name(group_id, counter_id);
     }
 
     std::cout << std::endl;
-
-    delete group;
   }
 }
