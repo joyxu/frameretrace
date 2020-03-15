@@ -51,6 +51,7 @@
 using glretrace::NoCopy;
 using glretrace::NoAssign;
 using glretrace::GlFunctions;
+using metrics::PerfMetricDescriptor;
 using metrics::PerfValue;
 using metrics::PerfMetricGroup;
 using metrics::PerfMetrics;
@@ -80,6 +81,21 @@ get_group_name(int group_id) {
   GlFunctions::GetPerfMonitorGroupStringAMD(group_id, max_name_len + 1,
                                             &name_len, group_name.data());
   return group_name.data();
+}
+
+static int
+get_group_id(std::string name) {
+  std::vector<unsigned int> group_ids;
+  get_group_ids(&group_ids);
+
+  for (auto group_id : group_ids) {
+    if (get_group_name(group_id) == name) {
+      return group_id;
+    }
+  }
+
+  std::cout << "Unknown group '" << name << "'" << std::endl;
+  exit(-1);
 }
 
 static std::vector<unsigned int>
@@ -183,37 +199,49 @@ AMDPerfMetric::publish(std::ostream *outf) {
   *outf << "\t" << m_current_val;
 }
 
-class AMDPerfMetricGroup : public PerfMetrics, PerfMetricGroup, NoCopy, NoAssign {
+class AMDPerfMetricGroup : public PerfMetricGroup, NoCopy, NoAssign {
  public:
-  explicit AMDPerfMetricGroup(int group_id);
+  explicit AMDPerfMetricGroup(PerfMetricDescriptor metrics_desc);
   ~AMDPerfMetricGroup();
   const std::string &name() const { return m_group_name; }
-  void get_metric_groups(std::vector<PerfMetricGroup *> *out_groups);
-  void set_metric_names(std::vector<std::string> names);
   void get_metric_names(std::vector<std::string> *out_names);
-  void begin(int current_frame, int event_number);
-  void end(const std::string &event_type);
-  void publish(std::ostream *outf, bool wait);
+  void begin(int monitor_id);
 
- private:
   std::string m_group_name;
   const int m_group_id;
-
   // key is the counter
   std::map<int, AMDPerfMetric *> m_metrics;
-
-  // represent monitors that have not produced results
-  std::queue<PerfValue> m_extant_monitors;
-
-  // represent monitors that can be reused
-  std::vector<unsigned int> m_free_monitors;
 };
 
-AMDPerfMetricGroup::AMDPerfMetricGroup(int group_id)
-    : m_group_id(group_id) {
-  m_group_name = get_group_name(group_id);
+AMDPerfMetricGroup::AMDPerfMetricGroup(PerfMetricDescriptor metrics_desc)
+    : m_group_id(get_group_id(metrics_desc.m_metrics_group)) {
+  m_group_name = get_group_name(m_group_id);
 
-  std::vector<unsigned int> counters = get_group_counters(group_id);
+  std::vector<unsigned int> counters;
+
+  if (metrics_desc.m_metrics_names.size() == 0) {
+    /* if no individual counters specified, try to collect them all: */
+    counters = get_group_counters(m_group_id);
+  } else {
+    /* otherwise collect the requested counters: */
+    std::vector<std::string> found_names;
+    std::vector<unsigned int> all_counters = get_group_counters(m_group_id);
+    auto &names = metrics_desc.m_metrics_names;
+    for (auto counter_id : all_counters) {
+      const std::string name = get_counter_name(m_group_id, counter_id);
+      auto found = std::find(names.begin(), names.end(), name);
+      if (found != names.end()) {
+        counters.push_back(counter_id);
+        found_names.push_back(*found);
+        *found = names.back();
+        names.pop_back();
+      }
+    }
+    for (const auto n : names)
+      GRLOGF(glretrace::ERR, "Could not enable metric: %s", n.c_str());
+
+    assert(!found_names.empty());
+  }
 
   for (auto counter : counters) {
     AMDPerfMetric *p = new AMDPerfMetric(m_group_id, counter);
@@ -222,49 +250,9 @@ AMDPerfMetricGroup::AMDPerfMetricGroup(int group_id)
 }
 
 AMDPerfMetricGroup::~AMDPerfMetricGroup() {
-  while (!m_extant_monitors.empty()) {
-    m_free_monitors.push_back(m_extant_monitors.front().handle);
-    m_extant_monitors.pop();
-  }
-  GlFunctions::DeletePerfMonitorsAMD(m_free_monitors.size(),
-                                     m_free_monitors.data());
-  assert(!GlFunctions::GetError());
-  m_free_monitors.clear();
   for (auto i : m_metrics)
     delete i.second;
   m_metrics.clear();
-}
-
-void
-AMDPerfMetricGroup::get_metric_groups(std::vector<PerfMetricGroup *> *out_groups) {
-  out_groups->push_back(this);
-}
-
-void
-AMDPerfMetricGroup::set_metric_names(std::vector<std::string> names) {
-  assert(names.size() > 0);
-
-  std::map<int, AMDPerfMetric *> filtered_metrics;
-
-  std::vector<std::string> found_names;
-  for (auto i : m_metrics) {
-    auto it = std::find(names.begin(), names.end(), i.second->name());
-    if (it != names.end()) {
-      filtered_metrics[i.first] = i.second;
-      found_names.push_back(*it);
-      *it = names.back();
-      names.pop_back();
-    } else {
-      delete i.second;
-    }
-  }
-  for (const auto n : names)
-    GRLOGF(glretrace::ERR, "Could not enable metric: %s", n.c_str());
-
-  assert(!found_names.empty());
-
-  m_metrics.clear();
-  m_metrics = filtered_metrics;
 }
 
 void
@@ -273,24 +261,79 @@ AMDPerfMetricGroup::get_metric_names(std::vector<std::string> *out_names) {
     out_names->push_back(i.second->name());
 }
 
-void AMDPerfMetricGroup::begin(int current_frame, int event_number) {
+void
+AMDPerfMetricGroup::begin(int monitor_id) {
+  // enable all selected metrics in the group
+  std::vector<unsigned int> counters;
+  for (auto metric : m_metrics)
+    counters.push_back(metric.first);
+  GlFunctions::SelectPerfMonitorCountersAMD(
+      monitor_id, true,
+      m_group_id, counters.size(),
+      counters.data());
+  assert(!GlFunctions::GetError());
+}
+
+class AMDPerfMetrics : public PerfMetrics, NoCopy, NoAssign {
+ public:
+  explicit AMDPerfMetrics(std::vector<PerfMetricDescriptor> metrics_descs);
+  ~AMDPerfMetrics();
+  void get_metric_groups(std::vector<PerfMetricGroup *> *out_groups);
+  void begin(int current_frame, int event_number);
+  void end(const std::string &event_type);
+  void publish(std::ostream *outf, bool wait);
+
+ private:
+  // key is the group_id
+  std::map<unsigned int, AMDPerfMetricGroup *> m_groups;
+
+  // represent monitors that have not produced results
+  std::queue<PerfValue> m_extant_monitors;
+
+  // represent monitors that can be reused
+  std::vector<unsigned int> m_free_monitors;
+};
+
+AMDPerfMetrics::AMDPerfMetrics(std::vector<PerfMetricDescriptor> metrics_descs) {
+  for (auto metrics_desc : metrics_descs) {
+    AMDPerfMetricGroup *group = new AMDPerfMetricGroup(metrics_desc);
+    m_groups[group->m_group_id] = group;
+  }
+}
+
+AMDPerfMetrics::~AMDPerfMetrics() {
+  for (auto i : m_groups) {
+    delete i.second;
+  }
+  while (!m_extant_monitors.empty()) {
+    m_free_monitors.push_back(m_extant_monitors.front().handle);
+    m_extant_monitors.pop();
+  }
+  GlFunctions::DeletePerfMonitorsAMD(m_free_monitors.size(),
+                                     m_free_monitors.data());
+  assert(!GlFunctions::GetError());
+  m_free_monitors.clear();
+}
+
+void
+AMDPerfMetrics::get_metric_groups(std::vector<PerfMetricGroup *> *out_groups) {
+  for (auto i : m_groups) {
+    out_groups->push_back(i.second);
+  }
+}
+
+void AMDPerfMetrics::begin(int current_frame, int event_number) {
   if (m_free_monitors.empty()) {
     m_free_monitors.resize(10000);
     GlFunctions::GenPerfMonitorsAMD(m_free_monitors.size(),
                                     m_free_monitors.data());
     assert(!GlFunctions::GetError());
 
-    // enable all the metrics in the group
-    std::vector<unsigned int> counters;
-    for (auto metric : m_metrics)
-      counters.push_back(metric.first);
-    for (auto i : m_free_monitors) {
-      GlFunctions::SelectPerfMonitorCountersAMD(
-          i, true,
-          m_group_id, counters.size(),
-          counters.data());
+    for (auto monitor_id : m_free_monitors) {
+      for (auto i : m_groups) {
+        i.second->begin(monitor_id);
+      }
     }
-    assert(!GlFunctions::GetError());
   }
   GlFunctions::BeginPerfMonitorAMD(m_free_monitors.back());
   m_extant_monitors.emplace(PerfValue(m_free_monitors.back(), current_frame,
@@ -299,13 +342,13 @@ void AMDPerfMetricGroup::begin(int current_frame, int event_number) {
 }
 
 void
-AMDPerfMetricGroup::end(const std::string &event_type) {
+AMDPerfMetrics::end(const std::string &event_type) {
   m_extant_monitors.back().event_type = event_type;
   GlFunctions::EndPerfMonitorAMD(m_extant_monitors.back().handle);
 }
 
 void
-AMDPerfMetricGroup::publish(std::ostream *outf, bool wait) {
+AMDPerfMetrics::publish(std::ostream *outf, bool wait) {
   while (true) {
     if (m_extant_monitors.empty())
       break;
@@ -342,16 +385,20 @@ AMDPerfMetricGroup::publish(std::ostream *outf, bool wait) {
     const unsigned char *buf_ptr = buf.data();
     const unsigned char *buf_end = buf_ptr + bytes_written;
     while (buf_ptr < buf_end) {
-      const GLuint *group = reinterpret_cast<const GLuint *>(buf_ptr);
-      const GLuint *counter = group + 1;
+      const GLuint *group_id = reinterpret_cast<const GLuint *>(buf_ptr);
+      const GLuint *counter = group_id + 1;
       buf_ptr += 2*sizeof(GLuint);
-      assert(*group == (unsigned int)m_group_id);
+
+      AMDPerfMetricGroup *group = m_groups[*group_id];
       int bytes_read = 0;
-      m_metrics[*counter]->getMetric(buf_ptr, &bytes_read);
+      group->m_metrics[*counter]->getMetric(buf_ptr, &bytes_read);
       buf_ptr += bytes_read;
     }
-    for (auto m : m_metrics)
-      m.second->publish(outf);
+    for (auto i : m_groups) {
+      for (auto m : i.second->m_metrics) {
+        m.second->publish(outf);
+      }
+    }
     m_free_monitors.push_back(extant_monitor);
     *outf << std::endl;
   }
@@ -359,33 +406,7 @@ AMDPerfMetricGroup::publish(std::ostream *outf, bool wait) {
 
 PerfMetrics *
 create_amd_metrics(std::vector<metrics::PerfMetricDescriptor> metrics_descs) {
-  if (metrics_descs.size() != 1) {
-    std::cout << "More than one metrics group is not supported "
-        "by amd metrics!" << std::endl;
-    return NULL;
-  }
-
-  metrics::PerfMetricDescriptor metrics_desc = metrics_descs.front();
-
-  std::vector<unsigned int> ids;
-  get_group_ids(&ids);
-
-  for (auto group_id : ids) {
-    AMDPerfMetricGroup *group = new AMDPerfMetricGroup(group_id);
-
-    if (group->name() == metrics_desc.m_metrics_group) {
-      if (metrics_desc.m_metrics_names.size() > 0) {
-        group->set_metric_names(metrics_desc.m_metrics_names);
-      }
-
-      return group;
-    }
-
-    delete group;
-    group = NULL;
-  }
-
-  return NULL;
+  return new AMDPerfMetrics(metrics_descs);
 }
 
 void
