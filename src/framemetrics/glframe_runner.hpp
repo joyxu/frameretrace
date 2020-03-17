@@ -67,6 +67,7 @@ class FrameRunner {
   void run(int end_frame);
 
  private:
+  int get_prog();
   std::ofstream m_of;
   std::ostream *m_out;
   int m_current_frame, m_current_event;

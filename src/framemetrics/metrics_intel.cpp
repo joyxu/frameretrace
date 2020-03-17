@@ -132,7 +132,7 @@ class IntelPerfMetricGroup : public PerfMetrics, PerfMetricGroup, NoCopy, NoAssi
   const std::string &name() const { return m_query_name; }
   void get_metric_groups(std::vector<PerfMetricGroup *> *out_groups);
   void get_metric_names(std::vector<std::string> *out_names);
-  void begin(int current_frame, int event_number);
+  void begin(int current_frame, int event_number, int prog);
   void end(const std::string &event_type);
   void publish(std::ostream *outf, bool wait);
 
@@ -185,7 +185,7 @@ IntelPerfMetricGroup::get_metric_names(std::vector<std::string> *out_names) {
 }
 
 void
-IntelPerfMetricGroup::begin(int current_frame, int event_number) {
+IntelPerfMetricGroup::begin(int current_frame, int event_number, int prog) {
   if (m_free_query_handles.empty()) {
     for (int i = 0; i < 10000; ++i) {
       GLuint query_handle;
@@ -213,7 +213,7 @@ IntelPerfMetricGroup::begin(int current_frame, int event_number) {
     GRLOG(glretrace::WARN, "failed to begin metrics query");
     assert(false);
   }
-  m_extant_query_handles.emplace(query_handle, current_frame, event_number);
+  m_extant_query_handles.emplace(query_handle, current_frame, event_number, prog);
 }
 
 void
@@ -236,7 +236,7 @@ IntelPerfMetricGroup::publish(std::ostream *outf, bool wait) {
 
     assert(bytes_written == m_data_size);
     *outf << extant_query.frame << "\t" << extant_query.number
-          << "\t" << extant_query.event_type;
+          << "\t" << extant_query.event_type << "\t" << extant_query.prog;
     for (auto desired_metric : m_metrics) {
       desired_metric->publish(m_data_buf, outf);
     }

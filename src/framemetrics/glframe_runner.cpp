@@ -158,7 +158,7 @@ FrameRunner::init() {
   m_current_metrics->get_metric_groups(&groups);
 
   // write a header
-  *m_out << "frame\tevent_number\tevent_type";
+  *m_out << "frame\tevent_number\tevent_type\tprogram";
 
   // add each metric column to the header
   for (auto group : groups) {
@@ -201,12 +201,23 @@ FrameRunner::advanceToFrame(int f) {
   }
 }
 
+int
+FrameRunner::get_prog()
+{
+  if (m_interval != kPerRender)
+    return 0;
+  int prog;
+  GlFunctions::GetIntegerv(GL_CURRENT_PROGRAM, &prog);
+  assert(!GlFunctions::GetError());
+  return prog;
+}
+
 void
 FrameRunner::run(int end_frame) {
   // retrace count frames and output frame time
   GlFunctions::Finish();
 
-  m_current_metrics->begin(m_current_frame, ++m_current_event);
+  m_current_metrics->begin(m_current_frame, ++m_current_event, get_prog());
   while (Call *call = parser->parse_call()) {
     bool save_call = false;
 
@@ -234,7 +245,7 @@ FrameRunner::run(int end_frame) {
       if (m_current_event % m_event_interval == 0) {
         // stop/start metrics to measure the render
         m_current_metrics->end(call->name());
-        m_current_metrics->begin(m_current_frame, m_current_event);
+        m_current_metrics->begin(m_current_frame, m_current_event, get_prog());
       }
     }
 
@@ -249,7 +260,7 @@ FrameRunner::run(int end_frame) {
         m_context_metrics[c] = create_metric_group(m_metrics_descs);
 
       m_current_metrics = m_context_metrics[c];
-      m_current_metrics->begin(m_current_frame, ++m_current_event);
+      m_current_metrics->begin(m_current_frame, ++m_current_event, get_prog());
     }
 
     const bool frame_boundary = call->flags & trace::CALL_FLAG_END_FRAME;
@@ -266,7 +277,7 @@ FrameRunner::run(int end_frame) {
               (m_interval == kPerFrame && m_current_frame % m_event_interval == 0)) {
             m_current_metrics->end(call->name());
             m_current_metrics->publish(m_out, false);
-            m_current_metrics->begin(m_current_frame, m_current_event);
+            m_current_metrics->begin(m_current_frame, m_current_event, get_prog());
           }
         }
         if (m_context_metrics.size() > 1) {
