@@ -132,6 +132,7 @@ class IntelPerfMetricGroup : public PerfMetrics, PerfMetricGroup, NoCopy, NoAssi
   const std::string &name() const { return m_query_name; }
   void get_metric_groups(std::vector<PerfMetricGroup *> *out_groups);
   void get_metric_names(std::vector<std::string> *out_names);
+  void filter_metrics(std::vector<std::string> names);
   void begin(int current_frame, int event_number, int prog);
   void end(const std::string &event_type);
   void publish(std::ostream *outf, bool wait);
@@ -182,6 +183,30 @@ IntelPerfMetricGroup::get_metric_names(std::vector<std::string> *out_names) {
   for (auto m : m_metrics) {
     out_names->push_back(m->name());
   }
+}
+
+void
+IntelPerfMetricGroup::filter_metrics(std::vector<std::string> names) {
+  if (names.empty())
+    // collect all metrics in group
+    return;
+  int num_found = 0;
+  for (auto metric = m_metrics.rbegin(); metric != m_metrics.rend(); ++metric) {
+    auto &name = (*metric)->name();
+    auto found = std::find(names.begin(), names.end(), name);
+    if (found == names.end()) {
+      delete(*metric);
+      *metric = m_metrics.back();
+      m_metrics.pop_back();
+    } else {
+      ++num_found;
+      *found = names.back();
+      names.pop_back();
+    }
+  }
+  for (const auto n : names)
+    GRLOGF(glretrace::ERR, "Could not enable metric: %s", n.c_str());
+  assert(num_found);
 }
 
 void
@@ -290,8 +315,8 @@ get_query_ids(std::vector<unsigned int> *ids) {
 PerfMetrics *
 create_intel_metrics(std::vector<metrics::PerfMetricDescriptor> metrics_descs) {
   if (metrics_descs.size() != 1) {
-    std::cout << "More than one metrics group is not supported "
-        "by intel metrics!" << std::endl;
+    GRLOG(glretrace::ERR, "More than one metrics group is not supported "
+          "by intel metrics!")
     return NULL;
   }
 
@@ -300,16 +325,12 @@ create_intel_metrics(std::vector<metrics::PerfMetricDescriptor> metrics_descs) {
   std::vector<unsigned int> ids;
   get_query_ids(&ids);
 
-  if (metrics_desc.m_metrics_names.size() > 0) {
-    std::cout << "Specifying individual metrics within group "
-        "is not supported by intel metrics!" << std::endl;
-    return NULL;
-  }
-
   for (auto query_id : ids) {
     IntelPerfMetricGroup *group = new IntelPerfMetricGroup(query_id);
-    if (group->name() == metrics_desc.m_metrics_group)
+    if (group->name() == metrics_desc.m_metrics_group) {
+      group->filter_metrics(metrics_desc.m_metrics_names);
       return group;
+    }
 
     delete group;
   }
