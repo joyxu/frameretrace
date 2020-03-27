@@ -44,12 +44,14 @@ int main(int argc, char *argv[]) {
   std::vector<std::string> metrics_names;
   std::string frame_file, out_file;
   std::vector<int> frames;
-  const char *usage = "USAGE: framemetrics [-a|-d] [-i {interval}] -g {metrics_group} [-o {out_file}]"
+  const char *usage = "USAGE: framemetrics [-a|-d] [-i {interval}] -g {metrics_group} [-o {out_file}] "
                       "-f {trace} frame_start frame_end\n"
                       "\t-d metric events measured for draw calls\n"
                       "\t-a metrics measured for full trace\n"
+                      "\t   default metric interval is per-frame\n"
                       "\t-i number of events to record before reporting metrics\n"
-                      "\tPrints available metrics groups when no group specified\n";
+                      "\t-g format is \"Group Name:Optional,comma separated,individual metrics\"\n"
+                      "\tPrints available metrics groups and metrics when no group is specified\n";
 
   int opt;
   int event_interval = 1;
@@ -57,7 +59,7 @@ int main(int argc, char *argv[]) {
   while ((opt = getopt(argc, argv, "adg:f:p:o:i:h")) != -1) {
     switch (opt) {
       case 'a':
-        if (interval == FrameRunner::kPerFrame) {
+        if (interval == FrameRunner::kPerRender) {
           printf("ERROR: -a and -d are mutually exclusive\n%s", usage);
           return -1;
         }
