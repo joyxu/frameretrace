@@ -57,6 +57,7 @@ class Logger : public Thread {
   static void GetLog(std::string *out);
   static void Flush();
   static void SetSeverity(Severity s);
+  static void EnableStderr();
   void Run();
 
  private:
@@ -71,6 +72,7 @@ class Logger : public Thread {
   FILE *m_fh, *m_read_fh;
   int m_severity;
   bool m_running;
+  bool m_stderr;
 };
 
 }  // namespace glretrace

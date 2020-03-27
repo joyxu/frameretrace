@@ -34,6 +34,7 @@
 
 #include <sstream>
 #include <string>
+#include <iostream>
 
 #include "glframe_os.hpp"
 
@@ -73,7 +74,8 @@ Logger::Destroy() {
 
 Logger::Logger(const std::string &out_path) : Thread("logger"),
                                               m_severity(WARN),
-                                              m_running(true) {
+                                              m_running(true),
+                                              m_stderr(false) {
   std::stringstream ss;
   m_fh = fopen(out_path.c_str(), "a");
   assert(m_fh != NULL);
@@ -105,6 +107,11 @@ format_severity(glretrace::Severity s) {
 }
 
 void
+Logger::EnableStderr() {
+  m_instance->m_stderr = true;
+}
+
+void
 Logger::Log(Severity s, const std::string &file, int line,
             const std::string &message) {
   assert(m_instance);
@@ -123,6 +130,8 @@ Logger::Log(Severity s, const std::string &file, int line,
   ScopedLock sl(m_instance->m_protect);
   m_instance->m_q.push(ss.str());
   m_instance->m_sem.post();
+  if (m_instance->m_stderr)
+    std::cerr << ss.str();
 }
 
 void
