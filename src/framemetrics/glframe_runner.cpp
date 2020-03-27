@@ -524,13 +524,22 @@ AMDPerfMetricGroup::set_metric_names(std::vector<std::string> names)
 
   std::map<int, AMDPerfMetric *> filtered_metrics;
 
+  std::vector<std::string> found_names;
   for (auto i : m_metrics) {
-    if (std::find(names.begin(), names.end(), i.second->name()) != names.end()) {
+    auto it = std::find(names.begin(), names.end(), i.second->name());
+    if (it != names.end()) {
       filtered_metrics[i.first] = i.second;
+      found_names.push_back(*it);
+      *it = names.back();
+      names.pop_back();
     } else {
       delete i.second;
     }
   }
+  for (const auto n : names)
+    GRLOGF(glretrace::ERR, "Could not enable metric: %s", n.c_str());
+
+  assert(!found_names.empty());
 
   m_metrics.clear();
   m_metrics = filtered_metrics;

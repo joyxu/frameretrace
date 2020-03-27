@@ -112,6 +112,7 @@ int main(int argc, char *argv[]) {
 
   glretrace::GlFunctions::Init();
   glretrace::Logger::Create();
+  glretrace::Logger::EnableStderr();
   glretrace::Logger::Begin();
 
   FrameRunner runner(frame_file, out_file, metrics_desc, frames.back(), interval, event_interval);
