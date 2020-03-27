@@ -33,6 +33,7 @@
 #include "os_time.hpp"
 #include "glframe_glhelper.hpp"
 #include "glframe_runner.hpp"
+#include "glframe_logger.hpp"
 
 using glretrace::FrameRunner;
 
@@ -106,7 +107,11 @@ int main(int argc, char *argv[]) {
     printf("%s", usage);
     return -1;
   }
+
   glretrace::GlFunctions::Init();
+  glretrace::Logger::Create();
+  glretrace::Logger::Begin();
+
   FrameRunner runner(frame_file, out_file, metrics_group, frames.back(), interval, event_interval);
 
   runner.advanceToFrame(frames[0]);
@@ -122,5 +127,6 @@ int main(int argc, char *argv[]) {
       " in " <<  timeInterval << " secs,"
       " average of " << (frameNo/timeInterval) << " fps\n";
 
+  glretrace::Logger::Destroy();
   return 0;
 }
