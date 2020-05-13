@@ -32,6 +32,7 @@
 #include <string>
 #include <vector>
 
+#include "glframe_logger.hpp"
 #include "glframe_os.hpp"
 #include "glframe_retrace_render.hpp"
 #include "glframe_state_enums.hpp"
@@ -325,6 +326,8 @@ QStateValue::value_to_choice(const std::string &_value) {
       return QString().setNum(c);
     ++c;
   }
-  assert(false);
+  GRLOGF(glretrace::ERR,
+         "Invalid enum value for %s: %s",
+         m_name.toStdString().c_str(), _value.c_str());
   return QString();
 }
