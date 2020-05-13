@@ -32,20 +32,22 @@
 
 #include "glframe_glhelper.hpp"
 #include "glframe_loop.hpp"
+#include "glframe_utils.hpp"
 
 using glretrace::FrameLoop;
 
 int main(int argc, char *argv[]) {
-  int loop_count = 0;
+  unsigned loop_count = 0;
   std::string frame_file, out_file;
-  std::vector<int> frames;
+  std::vector<unsigned> frames;
   const char *usage = "USAGE: framestat -n {loop_count} [-o {out_file}]"
                       "-f {trace} frame_1 frame_2 ... frame_n\n";
   int opt;
   while ((opt = getopt(argc, argv, "n:f:p:o:h")) != -1) {
     switch (opt) {
       case 'n':
-        loop_count = atoi(optarg);
+        if (glretrace::strtou(optarg, &loop_count))
+          return -1;
         continue;
       case 'f':
         frame_file = optarg;
@@ -61,7 +63,10 @@ int main(int argc, char *argv[]) {
   }
 
   for (int index = optind; index < argc; index++) {
-    frames.push_back(atoi(argv[index]));
+    unsigned frame;
+    if (glretrace::strtou(argv[index], &frame))
+      return -1;
+    frames.push_back(frame);
   }
   if (FILE *file = fopen(frame_file.c_str(), "r")) {
     fclose(file);

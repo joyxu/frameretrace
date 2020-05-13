@@ -45,15 +45,15 @@ class FrameLoop {
  public:
   FrameLoop(const std::string filepath,
             const std::string out_path,
-            int loop_count);
+            unsigned loop_count);
   ~FrameLoop();
-  void advanceToFrame(int f);
+  void advanceToFrame(unsigned f);
   void loop();
 
  private:
   std::ofstream m_of;
   std::ostream *m_out;
-  int m_current_frame, m_loop_count;
+  unsigned m_current_frame, m_loop_count;
   std::vector<trace::Call*> m_calls;
   ThreadContext m_thread_context;
 };
