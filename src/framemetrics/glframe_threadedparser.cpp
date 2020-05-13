@@ -163,7 +163,8 @@ ThreadedParser::getProperties(void) const { return m_parser.getProperties(); }
 ThreadParser::ThreadParser(const char *filename, int max_frame)
     : Thread("threaded parser"),
       m_max_frame(max_frame),
-      m_range(ParseBookmark(), ParseBookmark()) {
+      m_range(ParseBookmark(), ParseBookmark()),
+      m_running(false) {
   m_parser.open(filename);
   m_current_call = m_parsed_calls.begin();
 }
