@@ -279,7 +279,7 @@ class AMDPerfMetrics : public PerfMetrics, NoCopy, NoAssign {
   explicit AMDPerfMetrics(std::vector<PerfMetricDescriptor> metrics_descs);
   ~AMDPerfMetrics();
   void get_metric_groups(std::vector<PerfMetricGroup *> *out_groups);
-  void begin(int current_frame, int event_number, int prog);
+  void begin(unsigned current_frame, unsigned event_number, int prog);
   void end(const std::string &event_type);
   void publish(std::ostream *outf, bool wait);
 
@@ -322,7 +322,7 @@ AMDPerfMetrics::get_metric_groups(std::vector<PerfMetricGroup *> *out_groups) {
   }
 }
 
-void AMDPerfMetrics::begin(int current_frame, int event_number, int prog) {
+void AMDPerfMetrics::begin(unsigned current_frame, unsigned event_number, int prog) {
   if (m_free_monitors.empty()) {
     m_free_monitors.resize(10000);
     GlFunctions::GenPerfMonitorsAMD(m_free_monitors.size(),

@@ -133,7 +133,7 @@ class IntelPerfMetricGroup : public PerfMetrics, PerfMetricGroup, NoCopy, NoAssi
   void get_metric_groups(std::vector<PerfMetricGroup *> *out_groups);
   void get_metric_names(std::vector<std::string> *out_names);
   void filter_metrics(std::vector<std::string> names);
-  void begin(int current_frame, int event_number, int prog);
+  void begin(unsigned current_frame, unsigned event_number, int prog);
   void end(const std::string &event_type);
   void publish(std::ostream *outf, bool wait);
 
@@ -210,7 +210,7 @@ IntelPerfMetricGroup::filter_metrics(std::vector<std::string> names) {
 }
 
 void
-IntelPerfMetricGroup::begin(int current_frame, int event_number, int prog) {
+IntelPerfMetricGroup::begin(unsigned current_frame, unsigned event_number, int prog) {
   if (m_free_query_handles.empty()) {
     for (int i = 0; i < 10000; ++i) {
       GLuint query_handle;

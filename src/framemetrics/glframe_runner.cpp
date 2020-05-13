@@ -58,9 +58,9 @@ extern retrace::Retracer retracer;
 FrameRunner::FrameRunner(const std::string filepath,
                          const std::string out_path,
                          std::vector<metrics::PerfMetricDescriptor> metrics_descs,
-                         int max_frame,
+                         unsigned max_frame,
                          MetricInterval interval,
-                         int event_interval)
+                         unsigned event_interval)
     : m_of(), m_out(NULL),
       m_current_frame(0),
       m_current_event(0),
@@ -173,7 +173,7 @@ FrameRunner::init() {
 }
 
 void
-FrameRunner::advanceToFrame(int f) {
+FrameRunner::advanceToFrame(unsigned f) {
   trace::Call *call;
   while ((call = parser->parse_call()) && m_current_frame < f) {
     assert(!GlFunctions::GetError());
@@ -213,7 +213,7 @@ FrameRunner::get_prog()
 }
 
 void
-FrameRunner::run(int end_frame) {
+FrameRunner::run(unsigned end_frame) {
   // retrace count frames and output frame time
   GlFunctions::Finish();
 

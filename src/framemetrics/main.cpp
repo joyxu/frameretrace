@@ -34,6 +34,7 @@
 #include "glframe_glhelper.hpp"
 #include "glframe_runner.hpp"
 #include "glframe_logger.hpp"
+#include "glframe_utils.hpp"
 #include "metrics.hpp"
 
 using glretrace::FrameRunner;
@@ -43,7 +44,7 @@ int main(int argc, char *argv[]) {
   std::vector<PerfMetricDescriptor> metrics_descs;
   std::vector<std::string> metrics_names;
   std::string frame_file, out_file;
-  std::vector<int> frames;
+  std::vector<unsigned> frames;
   const char *usage = "USAGE: framemetrics [-a|-d] [-i {interval}] -g {metrics_group} [-o {out_file}] "
                       "-f {trace} frame_start frame_end\n"
                       "\t-d metric events measured for draw calls\n"
@@ -54,7 +55,7 @@ int main(int argc, char *argv[]) {
                       "\tPrints available metrics groups and metrics when no group is specified\n";
 
   int opt;
-  int event_interval = 1;
+  unsigned event_interval = 1;
   FrameRunner::MetricInterval interval = FrameRunner::kPerFrame;
   while ((opt = getopt(argc, argv, "adg:f:p:o:i:h")) != -1) {
     switch (opt) {
@@ -73,7 +74,8 @@ int main(int argc, char *argv[]) {
         interval = FrameRunner::kPerRender;
         continue;
       case 'i':
-        event_interval = atoi(optarg);
+        if (glretrace::strtou(optarg, &event_interval))
+          return -1;
         continue;
       case 'g':
         metrics_descs.push_back(PerfMetricDescriptor(optarg));
@@ -93,7 +95,12 @@ int main(int argc, char *argv[]) {
   }
 
   for (int index = optind; index < argc; index++) {
-    frames.push_back(atoi(argv[index]));
+    unsigned frame;
+
+    if (glretrace::strtou(argv[index], &frame))
+      return -1;
+
+    frames.push_back(frame);
   }
   if (FILE *file = fopen(frame_file.c_str(), "r")) {
     fclose(file);

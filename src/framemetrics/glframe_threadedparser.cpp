@@ -39,7 +39,7 @@ using trace::ParseBookmark;
 namespace glretrace {
 class ThreadParser : public Thread {
  public:
-  ThreadParser(const char *filename, int max_frame);
+  ThreadParser(const char *filename, unsigned max_frame);
   void parse_range(const ThreadedParser::ParseRange &range);
   Call *parse_call(void);
   void clear();
@@ -49,7 +49,7 @@ class ThreadParser : public Thread {
 
   ~ThreadParser();
  private:
-  const int m_max_frame;
+  const unsigned m_max_frame;
   std::vector<Call *> m_parsed_calls;
   std::vector<Call *>::iterator m_current_call;
   Parser m_parser;
@@ -62,7 +62,7 @@ class ThreadParser : public Thread {
 
 using glretrace::ThreadedParser;
 
-ThreadedParser::ThreadedParser(int max_frame) : m_max_frame(max_frame) {}
+ThreadedParser::ThreadedParser(unsigned max_frame) : m_max_frame(max_frame) {}
 ThreadedParser::~ThreadedParser() {
 }
 
@@ -160,7 +160,7 @@ ThreadedParser::getVersion(void) const { return m_parser.getVersion(); }
 const trace::Properties &
 ThreadedParser::getProperties(void) const { return m_parser.getProperties(); }
 
-ThreadParser::ThreadParser(const char *filename, int max_frame)
+ThreadParser::ThreadParser(const char *filename, unsigned max_frame)
     : Thread("threaded parser"),
       m_max_frame(max_frame),
       m_range(ParseBookmark(), ParseBookmark()),
@@ -195,7 +195,7 @@ ThreadParser::clear() {
 void
 ThreadParser::Run() {
   m_running = true;
-  int frame = 0;
+  unsigned frame = 0;
   while (auto call = m_parser.scan_call()) {
     if (RetraceRender::endsFrame(*call)) {
       if (frame++ > m_max_frame)

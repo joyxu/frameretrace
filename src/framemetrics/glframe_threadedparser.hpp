@@ -44,7 +44,7 @@ class ThreadedParser : public trace::AbstractParser {
     bool operator<(const ParseRange &o);
     ParseRange(const ParseRange &o) : begin(o.begin), end(o.end) {}
   };
-  ThreadedParser(int max_frame);
+  ThreadedParser(unsigned max_frame);
   ~ThreadedParser();
 
   // delegates to the current thread
@@ -63,7 +63,7 @@ class ThreadedParser : public trace::AbstractParser {
   const trace::Properties & getProperties(void) const;
 
  private:
-  const int m_max_frame;
+  const unsigned m_max_frame;
   trace::Parser m_parser;
   std::vector<ThreadParser*> m_threads;
   std::vector<ThreadParser*>::iterator m_current_thread;

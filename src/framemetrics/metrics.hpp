@@ -59,12 +59,12 @@ class PerfMetricDescriptor {
 class PerfValue {
  public:
   int handle;
-  int frame;
-  int number;
+  unsigned frame;
+  unsigned number;
   int prog;         /* current program, for kPerRender mode */
   std::string event_type;
-  PerfValue(int _handle, int _frame,
-            int _number, int _prog)
+  PerfValue(int _handle, unsigned _frame,
+      unsigned _number, int _prog)
       : handle(_handle), frame(_frame), number(_number), prog(_prog),
         event_type("") {}
 };
@@ -83,7 +83,7 @@ class PerfMetrics {
  public:
   virtual ~PerfMetrics() {}
   virtual void get_metric_groups(std::vector<PerfMetricGroup *> *out_groups) = 0;
-  virtual void begin(int current_frame, int event_number, int prog) = 0;
+  virtual void begin(unsigned current_frame, unsigned event_number, int prog) = 0;
   virtual void end(const std::string &event_type) = 0;
   virtual void publish(std::ostream *outf, bool wait) = 0;
 };

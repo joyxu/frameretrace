@@ -31,6 +31,7 @@ framestat_exe = executable('framemetrics',
                              'metrics.cpp',
                              'metrics_amd.cpp',
                              'metrics_intel.cpp',
+                             '../glframe_utils.cpp',
                            ],
                            dependencies : [
                              dep_apitrace,

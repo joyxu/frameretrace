@@ -57,22 +57,22 @@ class FrameRunner {
   FrameRunner(const std::string filepath,
               const std::string out_path,
               std::vector<metrics::PerfMetricDescriptor> metrics_descs,
-              int max_frame,
+              unsigned max_frame,
               MetricInterval interval = kPerFrame,
-              int event_interval = 1);
+              unsigned event_interval = 1);
   ~FrameRunner();
-  void advanceToFrame(int f);
+  void advanceToFrame(unsigned f);
   void dumpGroupsAndCounters();
   void init();
-  void run(int end_frame);
+  void run(unsigned end_frame);
 
  private:
   int get_prog();
   std::ofstream m_of;
   std::ostream *m_out;
-  int m_current_frame, m_current_event;
+  unsigned m_current_frame, m_current_event;
   const MetricInterval m_interval;
-  const int m_event_interval;
+  const unsigned m_event_interval;
   std::vector<metrics::PerfMetricDescriptor> m_metrics_descs;
   metrics::PerfMetrics *m_current_metrics;
   std::map<Context *, metrics::PerfMetrics *> m_context_metrics;
