@@ -121,7 +121,6 @@ class FrameRetraceSkeleton : public Thread,
   std::vector<unsigned char> m_buf;
   IFrameRetrace *m_frame;
   CancellationThread *m_cancel;
-  int m_remaining_metrics_requests;
   bool m_fatal_error;
 
   // For aggregating metrics callbacks on a series of requests.
