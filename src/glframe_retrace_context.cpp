@@ -180,11 +180,13 @@ normalize_image(Image *image, int rt_num) {
         if (pixels[i] < min)
           min = pixels[i];
       }
-      const float range = max - min;
-      // correct each pixel so the greyscale coves [0.0,1.0] instead of
-      // the narrower range in the original image.
-      for (int i = 0; i < pixel_count; ++i) {
-        pixels[i] = (pixels[i] - min) / range;
+      if (max != min) {
+        const float range = max - min;
+        // correct each pixel so the greyscale coves [0.0,1.0] instead of
+        // the narrower range in the original image.
+        for (int i = 0; i < pixel_count; ++i) {
+          pixels[i] = (pixels[i] - min) / range;
+        }
       }
       break;
     }
