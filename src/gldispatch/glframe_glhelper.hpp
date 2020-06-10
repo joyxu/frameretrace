@@ -251,11 +251,11 @@ class GlFunctions {
 
 typedef GlFunctions GL;
 
-inline void CheckError(const char * file, int line) {
+inline void CheckError(const char *file, int line, const char *str = "") {
   const int error = GL::GetError();
-  if ( error == GL_NO_ERROR)
+  if (error == GL_NO_ERROR)
     return;
-  printf("ERROR: %x %s:%i\n", error, file, line);
+  printf("ERROR: 0x%x %s:%i %s\n", error, file, line, str);
 }
 
 inline void GetCompileError(GLint shader, std::string *message) {
@@ -294,5 +294,6 @@ inline void PrintCompileError(GLint shader) {
 }  // namespace glretrace
 
 #define GL_CHECK() glretrace::CheckError(__FILE__, __LINE__)
+#define GL_CHECK_STR(str) glretrace::CheckError(__FILE__, __LINE__, str)
 
 #endif  // RETRACE_DAEMON_BARGRAPH_GLFRAME_GLHELPER_H_

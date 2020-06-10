@@ -187,7 +187,10 @@ RetraceRender::RetraceRender(unsigned int tex2x2,
   trace::ParseBookmark call_start;
   while ((call = parser->parse_call())) {
     tracker->flush();
+    if (0) // flip this to get full error info
+      retrace::debug = 1;
     m_retracer->retrace(*call);
+    GL_CHECK_STR(call->sig->name);
     tracker->track(*call);
     m_end_of_frame = endsFrame(*call);
     const bool render = isRender(*call);
