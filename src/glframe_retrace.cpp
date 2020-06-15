@@ -89,12 +89,17 @@ static MesaBatch batchControl;
 
 FrameRetrace::FrameRetrace()
     : m_tracker(&assemblyOutput),
-      m_metrics(NULL) {
+      m_metrics(NULL),
+      m_retracer(NULL) {
 }
 
 FrameRetrace::~FrameRetrace() {
   if (m_metrics)
     delete m_metrics;
+  for (auto c : m_contexts)
+    delete c;
+  if (m_retracer)
+    delete m_retracer;
   parser->close();
   retrace::cleanUp();
 }
