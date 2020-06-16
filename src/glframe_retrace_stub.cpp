@@ -79,7 +79,7 @@ class RetraceSocket {
   explicit RetraceSocket(const char *host, int port) : m_sock(host, port) {}
   bool request(const RetraceRequest &req) {
     // write message
-    const uint32_t write_size = req.ByteSize();
+    const uint32_t write_size = req.ByteSizeLong();
     if (!m_sock.Write(write_size)) {
       return false;
     }
@@ -107,8 +107,7 @@ class RetraceSocket {
 
     // 64MB, from coded_stream.h.  Textures are bigger than this
     static const int kDefaultTotalBytesLimit = 64 << 20;
-    coded_in.SetTotalBytesLimit(2 * kDefaultTotalBytesLimit,
-                                kDefaultTotalBytesLimit);
+    coded_in.SetTotalBytesLimit(2 * kDefaultTotalBytesLimit);
     CodedInputStream::Limit msg_limit = coded_in.PushLimit(read_size);
     resp->ParseFromCodedStream(&coded_in);
     coded_in.PopLimit(msg_limit);
@@ -1371,7 +1370,7 @@ class CancellationSocket {
     e.set_selection_count(selectionCount.count());
     e.set_experiment_count(experimentCount.count());
     m_buf.clear();
-    const uint32_t write_size = e.ByteSize();
+    const uint32_t write_size = e.ByteSizeLong();
     m_buf.resize(write_size);
     ArrayOutputStream array_out(m_buf.data(), write_size);
     CodedOutputStream coded_out(&array_out);
