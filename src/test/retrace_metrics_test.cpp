@@ -43,6 +43,9 @@ class MetricsCallback : public OnFrameRetrace {
   void onFileOpening(bool needUpload,
                      bool finished,
                      uint32_t frame_count) {}
+  void onGLError(uint32_t frame_count,
+                 const std::string &err,
+                 const std::string &call_str) { assert(false); }
   void onShaderAssembly(RenderId renderId,
                         SelectionId sc,
                         ExperimentId experimentCount,

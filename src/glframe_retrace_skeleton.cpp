@@ -533,6 +533,20 @@ FrameRetraceSkeleton::Run() {
 }
 
 void
+FrameRetraceSkeleton::onGLError(uint32_t frame_count,
+                                const std::string &err,
+                                const std::string &call_str) {
+  RetraceResponse proto_response;
+  auto status = proto_response.mutable_filestatus();
+  status->set_needs_upload(false);
+  status->set_finished(false);
+  status->set_frame_count(frame_count);
+  status->set_err(err);
+  status->set_call(call_str);
+  writeResponse(m_socket, proto_response, &m_buf);
+}
+
+void
 FrameRetraceSkeleton::onFileOpening(bool needUpload,
                                     bool finished,
                                     uint32_t frame_count) {

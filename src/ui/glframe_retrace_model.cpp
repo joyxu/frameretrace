@@ -355,6 +355,9 @@ FrameRetraceModel::onFileOpening(bool needUpload,
     for (int i = 0; i < rcount; ++i) {
       m_renders_model.append(new QRenderBookmark(i));
     }
+    if (!m_open_errors.empty()) {
+      emit onOpenError();
+    }
     emit onRenders();
 
     // trace initial metrics (GPU Time Elapsed, if available)
@@ -370,6 +373,14 @@ FrameRetraceModel::onFileOpening(bool needUpload,
   m_open_percent = percent;
   m_frame_count = frame_count;
   emit onFrameCount();
+}
+
+void
+FrameRetraceModel::onGLError(uint32_t frame_count,
+                             const std::string &err,
+                             const std::string &call_str) {
+  m_open_errors.push_back(
+      new QOpenError(this, frame_count, err, call_str));
 }
 
 void
@@ -747,3 +758,8 @@ FrameRetraceModel::revertExperiments() {
   m_selection->experiment();
 }
 
+
+QQmlListProperty<glretrace::QOpenError>
+FrameRetraceModel::openError() {
+  return QQmlListProperty<QOpenError>(this, m_open_errors);
+}

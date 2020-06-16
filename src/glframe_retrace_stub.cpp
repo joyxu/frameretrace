@@ -457,9 +457,16 @@ class RetraceOpenFileRequest: public IRetraceRequest {
           continue;
         }
         if (m_callback)
-          m_callback->onFileOpening(status.needs_upload(),
+          if (status.has_err()) {
+            m_callback->onGLError(status.frame_count(),
+                                  status.err(),
+                                  status.call());
+          }
+          else {
+            m_callback->onFileOpening(status.needs_upload(),
                                     status.finished(),
                                     status.frame_count());
+          }
         if (status.finished())
           break;
       } else if (response.has_error()) {

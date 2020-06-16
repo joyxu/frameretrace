@@ -139,6 +139,9 @@ class FileTransferCB : public OnFrameRetrace {
                      uint32_t frame_count) {
     m_needUpload |= needUpload;
   }
+  void onGLError(uint32_t frame_count,
+                 const std::string &err,
+                 const std::string &call_str) { assert(false); }
   void onShaderAssembly(RenderId renderId,
                         SelectionId selectionCount,
                         ExperimentId experimentCount,

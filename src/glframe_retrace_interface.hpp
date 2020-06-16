@@ -327,6 +327,9 @@ class OnFrameRetrace {
   virtual void onFileOpening(bool needUpload,
                              bool finished,
                              uint32_t frame_count) = 0;
+  virtual void onGLError(uint32_t current_frame,
+                         const std::string &err,
+                         const std::string &call) = 0;
   virtual void onShaderAssembly(RenderId renderId,
                                 SelectionId selectionCount,
                                 ExperimentId experimentCount,

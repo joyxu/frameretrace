@@ -42,6 +42,8 @@ message OpenFileStatus {
   required bool needs_upload = 1;
   required bool finished = 2;
   required uint32 frame_count = 3;
+  optional string err = 5;
+  optional string call = 6;
 }
 
 message MetricsList {
@@ -158,10 +160,16 @@ message ApiRequest {
   required RenderSelection selection = 1;
 }
 
+message ApiError {
+  required uint32 index = 1;
+  required string err = 2;
+}
+
 message ApiResponse {
   required uint32 selection_count = 3;
   required uint32 render_id = 1;
   repeated string apis = 2;
+  repeated ApiError errors = 4;
 }
 
 message ErrorResponse {

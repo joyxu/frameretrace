@@ -1,7 +1,7 @@
 import QtQuick 2.2
 import QtQuick.Controls 1.1
 import QtQuick.Layouts 1.1
-import QtQuick.Dialogs 1.1
+import QtQuick.Dialogs 1.2
 import QtQuick.Window 2.2
 import ApiTrace 1.0
 import Qt.labs.settings 1.0
@@ -34,6 +34,10 @@ ApplicationWindow {
             fileError.detailedText = frameRetrace.generalErrorDetails;
             fileError.visible = true;
         }
+        onOpenErrorChanged: {
+            openError.visible = true;
+            mainUI.visible = false;
+        }
     }
 
     MessageDialog {
@@ -46,6 +50,40 @@ ApplicationWindow {
             if (frameRetrace.errorSeverity == FrameRetrace.Fatal) {
                 Qt.quit();
             }
+        }
+    }
+
+    Dialog {
+        id: openError
+        width: 1600
+        height: 800
+        visible: false
+        title: "FrameRetrace encountered OpenGL errors leading up to the target frame"
+        standardButtons: Dialog.Ok
+        onAccepted: {
+            visible = false;
+            mainUI.visible = true;
+        }
+
+        TableView {
+            anchors.fill: parent
+            TableViewColumn {
+                role: "frameNumber"
+                title: "Frame Number"
+                width: 150
+            }
+            TableViewColumn {
+                role: "error"
+                title: "GL Error"
+                width: 150
+            }
+            TableViewColumn {
+                role: "callText"
+                title: "Call Text"
+                width: 1200
+            }
+
+            model: frameRetrace.openError
         }
     }
 

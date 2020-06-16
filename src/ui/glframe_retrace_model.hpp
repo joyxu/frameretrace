@@ -93,6 +93,25 @@ class QMetric : public QObject {
   QString m_name;
 };
 
+class QOpenError : public QObject, NoCopy, NoAssign, NoMove {
+  Q_OBJECT
+  Q_PROPERTY(QString frameNumber READ frameNumber CONSTANT);
+  Q_PROPERTY(QString error READ error CONSTANT);
+  Q_PROPERTY(QString callText READ callText CONSTANT);
+
+ public:
+  QOpenError() : m_frame_number(-1), m_error(""), m_call_text("") {}
+  QOpenError(QObject *parent, int fn, const std::string &e, const std::string &c)
+      : m_frame_number(QString::number(fn)),
+        m_error(e.c_str()),
+        m_call_text(c.c_str()) { moveToThread(parent->thread()); }
+  QString frameNumber() { return m_frame_number; }
+  QString error() { return m_error; }
+  QString callText() { return m_call_text; }
+ private:
+  QString m_frame_number, m_error, m_call_text;
+};
+
 class QBarGraphRenderer;
 class FrameRetraceModel : public QObject,
                           public OnFrameRetrace {
@@ -117,6 +136,8 @@ class FrameRetraceModel : public QObject,
              NOTIFY onGeneralError)
   Q_PROPERTY(Severity errorSeverity READ errorSeverity
              NOTIFY onGeneralError)
+  Q_PROPERTY(QQmlListProperty<glretrace::QOpenError> openError READ openError
+             NOTIFY onOpenError)
   Q_PROPERTY(glretrace::QExperimentModel* experimentModel
              READ experiments CONSTANT)
   Q_PROPERTY(glretrace::QRenderTargetModel* rendertarget
@@ -151,6 +172,9 @@ class FrameRetraceModel : public QObject,
 
   void onFileOpening(bool needUpload, bool finished,
                      uint32_t frame_count);
+  void onGLError(uint32_t frame_count,
+                 const std::string &err,
+                 const std::string &call_str);
   void onShaderAssembly(RenderId renderId,
                         SelectionId selectionCount,
                         ExperimentId experimentCount,
@@ -226,6 +250,7 @@ class FrameRetraceModel : public QObject,
     };
   Q_ENUM(Severity);
   Severity errorSeverity() const { return m_severity; }
+  QQmlListProperty<QOpenError> openError();
   void retraceRendertarget();
  public slots:
   void onUpdateMetricList();
@@ -239,6 +264,7 @@ class FrameRetraceModel : public QObject,
   void onMaxMetric();
   void onArgvZero();
   void onGeneralError();
+  void onOpenError();
 
   // this signal transfers onMetricList to be handled in the UI
   // thread.  The handler generates QObjects which are passed to qml
@@ -283,6 +309,7 @@ class FrameRetraceModel : public QObject,
   QList<QRenderBookmark *> m_renders_model;
   QList<QMetric *> m_metrics_model, m_filtered_metric_list;
   QList<BarMetrics> m_metrics;
+  QList<QOpenError*> m_open_errors;
 
   QRenderShadersList m_shaders;
   QString main_exe;  // for path to frameretrace_server

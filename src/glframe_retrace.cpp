@@ -44,6 +44,7 @@
 #include "glframe_perf_enabled.hpp"
 #include "glframe_retrace_context.hpp"
 #include "glframe_retrace_render.hpp"
+#include "glframe_state_enums.hpp"
 #include "glframe_stderr.hpp"
 #include "glframe_thread_context.hpp"
 #include "glretrace.hpp"
@@ -211,6 +212,17 @@ FrameRetrace::openFile(const std::string &filename,
     if (strcmp(call->sig->name, "glDeleteShader") != 0) {
       m_retracer->retrace(*call);
       m_tracker.track(*call);
+
+      GLenum err = GlFunctions::GetError();
+      if (err != GL_NO_ERROR) {
+        // indicate to user that a GL error occured as the trace was
+        // being replayed.  Do not display multi-line gl commands
+        std::string firstline;
+        std::getline(call_stream, firstline);
+        callback->onGLError(current_frame,
+                            glretrace::state_enum_to_name(err),
+                            firstline);
+      }
     }
     const bool frame_boundary = RetraceRender::endsFrame(*call);
     if (!owned_by_thread_tracker)

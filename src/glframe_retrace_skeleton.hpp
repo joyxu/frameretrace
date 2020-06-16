@@ -68,6 +68,9 @@ class FrameRetraceSkeleton : public Thread,
   virtual void onFileOpening(bool needs_upload,
                              bool finished,
                              uint32_t frame_count);
+  virtual void onGLError(uint32_t frame_count,
+                         const std::string &err,
+                         const std::string &call_str);
   virtual void onRenderTarget(SelectionId selectionCount,
                               ExperimentId experimentCount,
                               const std::string &label,

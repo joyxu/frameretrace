@@ -64,6 +64,7 @@ using glretrace::FrameRetraceStub;
 using glretrace::GlFunctions;
 using glretrace::Logger;
 using glretrace::QApiModel;
+using glretrace::QOpenError;
 using glretrace::QMetric;
 using glretrace::QRenderBookmark;
 using glretrace::QRenderShaders;
@@ -121,6 +122,8 @@ int main(int argc, char *argv[]) {
                                                  "QRenderShadersList");
   qmlRegisterType<glretrace::QApiModel>("ApiTrace", 1, 0,
                                         "QApiModel");
+  qmlRegisterType<glretrace::QOpenError>("ApiTrace", 1, 0,
+                                         "QOpenError");
   qmlRegisterType<glretrace::QBatchModel>("ApiTrace", 1, 0,
                                           "QBatchModel");
   qmlRegisterType<glretrace::QExperimentModel>("ApiTrace", 1, 0,
