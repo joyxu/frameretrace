@@ -173,7 +173,7 @@ ApplicationWindow {
             TextInput {
                 height: textHeight.height
                 anchors.verticalCenter: parent.verticalCenter
-                    anchors.left: parent.left
+                anchors.left: parent.left
                 anchors.leftMargin: 4
                 verticalAlignment: Text.AlignVCenter
                 activeFocusOnPress : true
@@ -209,7 +209,7 @@ ApplicationWindow {
             TextInput {
                 height: textHeight.height
                 anchors.verticalCenter: parent.verticalCenter
-                    anchors.left: parent.left
+                anchors.left: parent.left
                 anchors.leftMargin: 4
                 verticalAlignment: Text.AlignVCenter
                 activeFocusOnPress : true
