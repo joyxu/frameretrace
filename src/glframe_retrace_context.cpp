@@ -88,11 +88,15 @@ RetraceContext::RetraceContext(RenderId current_render,
       geometry_render_supported = 0;
   }
 
+  RenderBookmark context_start;
+  parser->getBookmark(context_start.start);
   trace::Call *call = parser->parse_call();
-  if (ThreadContext::changesContext(*call))
+  if (ThreadContext::changesContext(*call)) {
     m_context_switch = call;
-  else
+  } else {
     delete call;
+    parser->setBookmark(context_start.start);
+  }
 
   int current_render_buffer = RetraceRender::currentRenderBuffer();
   // play through the frame, generating renders
