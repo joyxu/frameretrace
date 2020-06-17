@@ -64,6 +64,7 @@ Item {
                         height: render_text.height
                         width: api_selection.width
                         Text {
+                            textFormat: TextEdit.RichText
                             id: render_text
                             text: modelData
                         }
@@ -104,6 +105,7 @@ Item {
                     id: api
                     readOnly: true
                     selectByMouse: true
+                    textFormat: TextEdit.RichText
                     text: apiModel.apiCalls
                 }
             }

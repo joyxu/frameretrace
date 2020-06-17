@@ -564,14 +564,16 @@ FrameRetraceModel::refreshMetrics() {
 void
 FrameRetraceModel::onApi(SelectionId selectionCount,
                          RenderId renderId,
-                         const std::vector<std::string> &api_calls) {
+                         const std::vector<std::string> &api_calls,
+                         const std::vector<uint32_t> &error_indices,
+                         const std::vector<std::string> &errors) {
   {
     ScopedLock s(m_protect);
     if (m_selection_count != selectionCount)
       // retrace is out of date
       return;
   }
-  m_api.onApi(selectionCount, renderId, api_calls);
+  m_api.onApi(selectionCount, renderId, api_calls, error_indices, errors);
 }
 
 void

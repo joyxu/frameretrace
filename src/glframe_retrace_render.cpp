@@ -190,6 +190,7 @@ RetraceRender::RetraceRender(unsigned int tex2x2,
     if (0) // flip this to get full error info
       retrace::debug = 1;
     m_retracer->retrace(*call);
+    const GLenum err = GlFunctions::GetError();
     GL_CHECK_STR(call->sig->name);
     tracker->track(*call);
     m_end_of_frame = endsFrame(*call);
@@ -213,6 +214,11 @@ RetraceRender::RetraceRender(unsigned int tex2x2,
                 trace::DUMP_FLAG_NO_COLOR);
     m_api_calls.push_back(call_stream.str());
     call_stream.str("");
+
+    if (err != GL_NO_ERROR) {
+      m_error_indices.push_back(m_api_calls.size() - 1);
+      m_errors.push_back(glretrace::state_enum_to_name(err));
+    }
 
     if (render || m_end_of_frame) {
       m_last_call = call;
@@ -475,7 +481,7 @@ void
 RetraceRender::onApi(SelectionId selId,
                      RenderId renderId,
                      OnFrameRetrace *callback) {
-  callback->onApi(selId, renderId, m_api_calls);
+  callback->onApi(selId, renderId, m_api_calls, m_error_indices, m_errors);
 }
 
 void

@@ -652,14 +652,21 @@ FrameRetraceSkeleton::onMetrics(const MetricSeries &metricData,
 void
 FrameRetraceSkeleton::onApi(SelectionId selectionCount,
                             RenderId renderId,
-                            const std::vector<std::string> &api_calls) {
-  // TODO(majanes) encode selectionCount in message
+                            const std::vector<std::string> &api_calls,
+                            const std::vector<uint32_t> &error_indices,
+                            const std::vector<std::string> &errors) {
   RetraceResponse proto_response;
   auto api = proto_response.mutable_api();
   api->set_selection_count(selectionCount());
   api->set_render_id(renderId());
   for (auto a : api_calls) {
     api->add_apis(a);
+  }
+  assert(errors.size() == error_indices.size());
+  for (int i=0; i < errors.size(); ++i) {
+    ApiTrace::ApiError *e = api->add_errors();
+    e->set_index(error_indices[i]);
+    e->set_err(errors[i]);
   }
   writeResponse(m_socket, proto_response, &m_buf);
 }

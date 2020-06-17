@@ -105,7 +105,9 @@ class NullCallback : public OnFrameRetrace {
                  SelectionId selectionCount) {}
   void onApi(SelectionId selectionCount,
              RenderId renderId,
-             const std::vector<std::string> &api_calls) {
+             const std::vector<std::string> &api_calls,
+             const std::vector<uint32_t> &error_indices,
+             const std::vector<std::string> &errors) {
     last_selection = selectionCount;
     calls[renderId] = api_calls;
   }

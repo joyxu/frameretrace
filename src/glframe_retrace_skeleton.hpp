@@ -87,7 +87,9 @@ class FrameRetraceSkeleton : public Thread,
                          SelectionId selectionCount);
   virtual void onApi(SelectionId selectionCount,
                      RenderId renderid,
-                     const std::vector<std::string> &api_calls);
+                     const std::vector<std::string> &api_calls,
+                     const std::vector<uint32_t> &error_indices,
+                     const std::vector<std::string> &errors);
   virtual void onError(ErrorSeverity s, const std::string &message);
 
   virtual void onBatch(SelectionId selectionCount,

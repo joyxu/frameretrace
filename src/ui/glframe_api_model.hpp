@@ -53,7 +53,9 @@ class QApiModel : public QObject,
   QStringList renders() const;
   void onApi(SelectionId selectionCount,
              RenderId renderId,
-             const std::vector<std::string> &api_calls);
+             const std::vector<std::string> &api_calls,
+             const std::vector<uint32_t> &error_indices,
+             const std::vector<std::string> &errors);
   Q_INVOKABLE void setIndex(int index);
   Q_INVOKABLE void filter(QString substring);
 

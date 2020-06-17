@@ -456,7 +456,7 @@ class RetraceOpenFileRequest: public IRetraceRequest {
           }
           continue;
         }
-        if (m_callback)
+        if (m_callback) {
           if (status.has_err()) {
             m_callback->onGLError(status.frame_count(),
                                   status.err(),
@@ -467,6 +467,7 @@ class RetraceOpenFileRequest: public IRetraceRequest {
                                     status.finished(),
                                     status.frame_count());
           }
+        }
         if (status.finished())
           break;
       } else if (response.has_error()) {
@@ -813,8 +814,15 @@ class ApiRequest : public IRetraceRequest {
       for (auto a : api_str_vec)
         apis.push_back(a);
 
+      auto &api_err = api_response.errors();
+      std::vector<uint32_t> error_indices;
+      std::vector<std::string> errors;
+      for (auto e : api_err) {
+        errors.push_back(e.err());
+        error_indices.push_back(e.index());
+      }
       m_callback->onApi(SelectionId(selection),
-                        rid, apis);
+                        rid, apis, error_indices, errors);
     }
   }
 

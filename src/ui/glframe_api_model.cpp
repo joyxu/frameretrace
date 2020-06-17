@@ -58,7 +58,9 @@ QApiModel::apiCalls() {
 void
 QApiModel::onApi(SelectionId selectionCount,
                  RenderId renderId,
-                 const std::vector<std::string> &api_calls) {
+                 const std::vector<std::string> &api_calls,
+                 const std::vector<uint32_t> &error_indices,
+                 const std::vector<std::string> &errors) {
   {
     ScopedLock s(m_protect);
     if (m_sel_count != selectionCount) {
@@ -67,12 +69,31 @@ QApiModel::onApi(SelectionId selectionCount,
       m_sel_count = selectionCount;
     }
 
-    m_renders.push_back(QString("%1").arg(renderId.index()));
+    if (errors.size() == 0)
+      m_renders.push_back(QString("%1").arg(renderId.index()));
+    else
+      m_renders.push_back(QString("<b><font color=crimson>%1</font></b>").arg(renderId.index()));
     QString &api = m_api_calls[m_renders.back()];
-    for (auto i : api_calls) {
-      api.append(QString::fromStdString(i));
+    std::map<unsigned, std::string> error_map;
+    assert(error_indices.size() == errors.size());
+    for(unsigned i = 0; i < errors.size(); ++i)
+      error_map[error_indices[i]] = errors[i];
+
+    for (unsigned i = 0; i < api_calls.size(); ++i) {
+      auto err = error_map.find(i);
+      if (err != error_map.end()) {
+        api.append(QString("<b><font color=crimson>"));
+      }
+      api.append(QString::fromStdString(api_calls[i]));
+      if (err != error_map.end()) {
+        api.append(QString(" : "));
+        api.append(QString::fromStdString(err->second));
+        api.append(QString("</font></b>"));
+      }
+      api.append(QString("<br/>"));
     }
     m_api_calls[m_renders.back()] = api;
+
     filter();
   }
   setIndex(0);

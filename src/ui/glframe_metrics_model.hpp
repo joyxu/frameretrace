@@ -121,7 +121,9 @@ class QMetricsModel : public QObject, OnFrameRetrace,
                        const std::string &errorString) { assert(false); }
   void onApi(SelectionId selectionCount,
              RenderId renderId,
-             const std::vector<std::string> &api_calls) { assert(false); }
+             const std::vector<std::string> &api_calls,
+             const std::vector<uint32_t> &error_indices,
+             const std::vector<std::string> &errors) { assert(false); }
   void onError(ErrorSeverity s, const std::string &message) {}
   void onBatch(SelectionId selectionCount,
                ExperimentId experimentCount,

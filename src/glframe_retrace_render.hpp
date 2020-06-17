@@ -114,6 +114,8 @@ class RetraceRender {
   int m_rt_program, m_overdraw_program, m_retrace_program, m_original_program;
   bool m_end_of_frame, m_highlight_rt, m_changes_context;
   std::vector<std::string> m_api_calls;
+  std::vector<unsigned> m_error_indices;
+  std::vector<std::string> m_errors;
   bool m_disabled, m_simple_shader;
   class UniformOverride;
   UniformOverride *m_uniform_override;

@@ -167,7 +167,9 @@ class FileTransferCB : public OnFrameRetrace {
                        const std::string &errorString) {}
   void onApi(SelectionId selectionCount,
              RenderId renderId,
-             const std::vector<std::string> &api_calls) {}
+             const std::vector<std::string> &api_calls,
+             const std::vector<uint32_t> &error_indices,
+             const std::vector<std::string> &errors) {}
   void onError(ErrorSeverity s, const std::string &message) {}
   void onBatch(SelectionId selectionCount,
                ExperimentId experimentCount,

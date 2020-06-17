@@ -355,7 +355,9 @@ class OnFrameRetrace {
                                const std::string &errorString) = 0;
   virtual void onApi(SelectionId selectionCount,
                      RenderId renderId,
-                     const std::vector<std::string> &api_calls) = 0;
+                     const std::vector<std::string> &api_calls,
+                     const std::vector<uint32_t> &error_indices,
+                     const std::vector<std::string> &errors) = 0;
   virtual void onError(ErrorSeverity s, const std::string &message) = 0;
   virtual void onBatch(SelectionId selectionCount,
                        ExperimentId experimentCount,
