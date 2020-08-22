@@ -192,6 +192,17 @@ PerfMetricsContext::PerfMetricsContext(OnFrameRetrace *cb)
   int group_index = 0;
   for (auto i : query_ids) {
     PerfMetricGroup *g = new PerfMetricGroup(i);
+
+    // skip unusable metrics.  On Linux 5.8, the raw metrics will cause FrameRetrace to crash.
+    if (g->name().find("Intel_Raw") != std::string::npos) {
+      GRLOGF(glretrace::WARN, "skipping raw counter group: %s", g->name().c_str());
+      continue;
+    }
+    if (g->name().find("TestOa") != std::string::npos) {
+      GRLOGF(glretrace::WARN, "skipping test counter group: %s", g->name().c_str());
+      continue;
+    }
+
     groups.push_back(g);
     metrics.clear();
     g->metrics(&metrics);
