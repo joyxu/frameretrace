@@ -354,7 +354,7 @@ Item {
 
     Connections {
         target: model
-        onShadersChanged: {
+        function onShadersChanged() {
             // remove all tabs from the view, and re-display them only
             // if content is available.
             while (view.count > 0) {
