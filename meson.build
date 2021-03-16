@@ -49,8 +49,6 @@ if cpp.get_argument_syntax() == 'msvc'
 elif cpp.get_argument_syntax() == 'gcc'
   add_project_arguments(
     cpp.get_supported_arguments([
-                      '-fno-rtti',
-                      '-DGOOGLE_PROTOBUF_NO_RTTI',
                       '-fno-exceptions',
     ]),
     language : ['cpp']
